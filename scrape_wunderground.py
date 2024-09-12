@@ -24,6 +24,9 @@ import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 import argparse
 
 # Set the absolute path to chromedriver
@@ -48,7 +51,7 @@ def render_page(url):
             rendered page source
     """
 
-    driver = webdriver.Chrome(chromedriver_path)
+    driver = webdriver.Chrome(service = Service(chromedriver_path), options = Options.add_argument("--headless=new"))
     driver.get(url)
     time.sleep(3) # Could potentially decrease the sleep time
     r = driver.page_source
@@ -247,5 +250,5 @@ if __name__ == "__main__":
     df = scrape_multiattempt(station=station, date=date, attempts=4, wait_time=5.0, freq=freq)
 
     filename = '%s_%s.csv' % (station, date)
+    df.to_html('%s_%s.html' % (station, date))
     df.to_csv(filename)
-    
