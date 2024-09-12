@@ -14,7 +14,8 @@ Alternatively, each function below can be imported and used in a separate python
 script. Note that a working version of chromedriver must be installed and the absolute
 path to executable has to be updated below ("chromedriver_path").
 
-Zach Perzan, 2021-07-28"""
+Zach Perzan, 2021-07-28
+Modified ever so slightly by Kelly Kemnitz, 9/12/2024"""
 
 import time
 from datetime import datetime, timedelta
@@ -26,8 +27,12 @@ from selenium import webdriver
 import argparse
 
 # Set the absolute path to chromedriver
-chromedriver_path = '/bin/chromedriver'
+chromedriver_path = '/usr/bin/chromedriver'
 
+# Values
+station = 'KKSWICHI504'
+date = datetime.today().strftime("%Y-%m-%d")
+freq = '5min'
 
 def render_page(url):
     """Given a url, render it with chromedriver and return the html source
@@ -52,7 +57,7 @@ def render_page(url):
     return r
 
 
-def scrape_wunderground(station, date, freq='5min'):
+def scrape_wunderground(station, date, freq):
     """Given a PWS station ID and date, scrape that day's data from Weather
     Underground and return it as a dataframe.
 
@@ -141,7 +146,7 @@ def scrape_wunderground(station, date, freq='5min'):
     return df
 
 
-def scrape_multiattempt(station, date, attempts=4, wait_time=5.0, freq='5min'):
+def scrape_multiattempt(station, date, attempts, wait_time, freq):
     """Try to scrape data from Weather Underground. If there is an error on the
     first attempt, try again.
 
@@ -152,7 +157,7 @@ def scrape_multiattempt(station, date, attempts=4, wait_time=5.0, freq='5min'):
         date : str
             The date for which to acquire data, formatted as 'YYYY-MM-DD'
         attempts : int, default 4
-            Maximum number of times to try accessing before failuer
+            Maximum number of times to try accessing before failure
         wait_time : float, default 5.0
             Amount of time to wait in between attempts
         freq : {'5min', 'daily'}
@@ -169,7 +174,7 @@ def scrape_multiattempt(station, date, attempts=4, wait_time=5.0, freq='5min'):
     # Try to download data limited number of attempts
     for n in range(attempts):
         try:
-            df = scrape_wunderground(station, date, freq=freq)
+            df = scrape_wunderground(station, date, freq)
         except:
             # if unsuccessful, pause and retry
             time.sleep(wait_time)
@@ -231,14 +236,16 @@ def scrape_multidate(station, start_date, end_date, freq):
 if __name__ == "__main__":
 
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description='Scrape weather data from Weather Underground')
-    parser.add_argument('station', type=str, help='The personal weather station ID')
-    parser.add_argument('date', type=str, help='The date for which to acquire data, formatted as YYYY-MM-DD')
-    parser.add_argument('freq', type=str, help='Whether to download 5-minute weather observations or '
-                                               'daily summaries (average, min and max for each day)')
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description='Scrape weather data from Weather Underground')
+    # parser.add_argument('station', type=str, help='The personal weather station ID')
+    # parser.add_argument('date', type=str, help='The date for which to acquire data, formatted as YYYY-MM-DD')
+    # parser.add_argument('freq', type=str, help='Whether to download 5-minute weather observations or '
+    #                                            'daily summaries (average, min and max for each day)')
+    # args = parser.parse_args()
 
-    df = scrape_multiattempt(args.station, args.date, freq=args.freq)
+    # df = scrape_multiattempt(args.station, args.date, freq=args.freq)
+    df = scrape_multiattempt(station=station, date=date, attempts=4, wait_time=5.0, freq=freq)
 
-    filename = '%s_%s.csv' % (args.station, args.date)
+    filename = '%s_%s.csv' % (station, date)
     df.to_csv(filename)
+    
