@@ -17,41 +17,54 @@ path to executable has to be updated below ("chromedriver_path").
 Zach Perzan, 2021-07-28
 Modified ever so slightly by Kelly Kemnitz, 9/12/2024"""
 
+import yaml
 import time
 from datetime import datetime, timedelta
 
+import dash
+from dash import Dash, dash_table, html, dcc
 import numpy as np
 import pandas as pd
+import plotly.express as px
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-import argparse
 
-# Set the absolute path to chromedriver
-chromedriver_path = '/usr/bin/chromedriver'
 
-# Values
-station = 'KKSWICHI504'
-date = datetime.today().strftime("%Y-%m-%d")
-freq = '5min'
+class WeatherStation:
+    def __init__(self):
+        with open('settings.yaml', 'r') as file:
+            settings = yaml.safe_load(file)
 
-def render_page(url):
+        self.station = settings['station']
+        self.date = datetime.today().strftime("%Y-%m-%d")
+        self.freq = settings['freq']
+        self.chromedriver_path = settings['chromedriver_path']
+
+    def get_settings(self):
+        return self.station, self.date, self.freq, self.chromedriver_path
+
+def render_page(url, chromedriver_path):
     """Given a url, render it with chromedriver and return the html source
 
     Parameters
     ----------
         url : str
             url to render
+        chromedriver_path : str
+            Path to location of chromedriver
 
     Returns
     -------
         r :
             rendered page source
     """
-
-    driver = webdriver.Chrome(service = Service(chromedriver_path), options = Options.add_argument("--headless=new"))
+    chrome_service = Service(chromedriver_path)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless=new")
+    driver = webdriver.Chrome(service = chrome_service, options = chrome_options)
     driver.get(url)
     time.sleep(3) # Could potentially decrease the sleep time
     r = driver.page_source
@@ -59,8 +72,7 @@ def render_page(url):
 
     return r
 
-
-def scrape_wunderground(station, date, freq):
+def scrape_wunderground(station, date, freq, chromedriver_path):
     """Given a PWS station ID and date, scrape that day's data from Weather
     Underground and return it as a dataframe.
 
@@ -73,6 +85,8 @@ def scrape_wunderground(station, date, freq):
         freq : {'5min', 'daily'}
             Whether to download 5-minute weather observations or daily
             summaries (average, min and max for each day)
+        chromedriver_path : str
+            Path to the location of chromedriver
 
     Returns
     -------
@@ -92,8 +106,8 @@ def scrape_wunderground(station, date, freq):
     url = 'https://www.wunderground.com/dashboard/pws/%s/table/%s/%s/%s' % (station,
                                                                             date, date,
                                                                             timespan)
-    r = render_page(url)
-    soup = BS(r, "html.parser",)
+    r = render_page(url, chromedriver_path)
+    soup = BS(r, "html.parser")
 
     container = soup.find('lib-history-table')
 
@@ -144,12 +158,13 @@ def scrape_wunderground(station, date, freq):
 
     # Convert to dataframe
     df = pd.DataFrame(index=timestamps, data=data_array, columns=columns[freq])
-    df.index = pd.to_datetime(df.index)
+    df.index = pd.to_datetime(df.index, format='%Y-%m-%d %I:%M %p')
+    df.reset_index(inplace=True)
+    df.rename(columns={'index': 'Timestamp'}, inplace=True)
 
     return df
 
-
-def scrape_multiattempt(station, date, attempts, wait_time, freq):
+def scrape_multiattempt(station, date, freq, chromedriver_path, attempts, wait_time):
     """Try to scrape data from Weather Underground. If there is an error on the
     first attempt, try again.
 
@@ -159,14 +174,16 @@ def scrape_multiattempt(station, date, attempts, wait_time, freq):
             The personal weather station ID
         date : str
             The date for which to acquire data, formatted as 'YYYY-MM-DD'
+        freq : {'5min', 'daily'}
+            Whether to download 5-minute weather observations or daily
+            summaries (average, min and max for each day)
+        chromedriver_path : str
+            Path to the location of chromedriver
         attempts : int, default 4
             Maximum number of times to try accessing before failure
         wait_time : float, default 5.0
             Amount of time to wait in between attempts
-        freq : {'5min', 'daily'}
-            Whether to download 5-minute weather observations or daily
-            summaries (average, min and max for each day)
-
+        
     Returns
     -------
         df : dataframe or None
@@ -177,7 +194,7 @@ def scrape_multiattempt(station, date, attempts, wait_time, freq):
     # Try to download data limited number of attempts
     for n in range(attempts):
         try:
-            df = scrape_wunderground(station, date, freq)
+            df = scrape_wunderground(station, date, freq, chromedriver_path)
         except:
             # if unsuccessful, pause and retry
             time.sleep(wait_time)
@@ -189,7 +206,6 @@ def scrape_multiattempt(station, date, attempts, wait_time, freq):
         df = pd.DataFrame()
 
     return df
-
 
 def scrape_multidate(station, start_date, end_date, freq):
     """Given a PWS station ID and a start and end date, scrape data from Weather
@@ -235,20 +251,61 @@ def scrape_multidate(station, start_date, end_date, freq):
 
     return df
 
+def df_to_html(df):
+    return df.to_html('%s_%s.html' % (ws.station, ws.date))
+
+def df_to_csv(df):
+    return df.to_csv('%s_%s.csv' % (ws.station, ws.date))
+
+def run_dash(df):
+    app = dash.Dash(__name__)
+
+    df_temperature = df[['Timestamp', 'Temperature']]
+    df_dewpoint = df[['Timestamp', 'Dew Point']]
+    df_pressure = df[['Timestamp', 'Pressure']]
+
+    app = dash.Dash(__name__)
+
+    app.layout = html.Div(
+        [
+            html.H1('weather.kellykemnitz.com'),
+            html.H4('Temperature', style={'textAlign': 'center'}),
+            html.Div(
+                children=[
+                    dcc.Graph(
+                        id='temperature',
+                        figure=px.line(df_temperature, x='Timestamp', y='Temperature')
+                    )
+                ]
+            ),
+            html.H4('Dew Point', style={'textAlign': 'center'}),
+            html.Div(
+                children=[
+                    dcc.Graph(
+                        id='dewpoint',
+                        figure=px.line(df_dewpoint, x='Timestamp', y='Dew Point')
+                    )
+                ]
+            ),
+            html.H4('Pressure', style={'textAlign': 'center'}),
+            html.Div(
+                children=[
+                    dcc.Graph(
+                        id='pressure',
+                        figure=px.line(df_pressure, x='Timestamp', y='Pressure')
+                    )
+                ]
+            )
+        ]
+    )
+
+    app.run()
 
 if __name__ == "__main__":
+    ws = WeatherStation()
 
-    # Parse command-line arguments
-    # parser = argparse.ArgumentParser(description='Scrape weather data from Weather Underground')
-    # parser.add_argument('station', type=str, help='The personal weather station ID')
-    # parser.add_argument('date', type=str, help='The date for which to acquire data, formatted as YYYY-MM-DD')
-    # parser.add_argument('freq', type=str, help='Whether to download 5-minute weather observations or '
-    #                                            'daily summaries (average, min and max for each day)')
-    # args = parser.parse_args()
+    df = scrape_multiattempt(ws.station, ws.date, ws.freq, ws.chromedriver_path, attempts=4, wait_time=5.0)
 
-    # df = scrape_multiattempt(args.station, args.date, freq=args.freq)
-    df = scrape_multiattempt(station=station, date=date, attempts=4, wait_time=5.0, freq=freq)
-
-    filename = '%s_%s.csv' % (station, date)
-    df.to_html('%s_%s.html' % (station, date))
-    df.to_csv(filename)
+    df_to_csv(df)
+    df_to_html(df)
+    run_dash(df)

@@ -1,0 +1,4 @@
+---
+station: KKSWICHI504
+freq: 5min
+chromedriver_path: "/usr/bin/chromedriver"
