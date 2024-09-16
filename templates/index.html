@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>weather.kellykemnitz.com</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Weather Graphs</h1>
+    <div id="temp_dew_graph"></div>
+    <div id="windspeed_graph"></div>
+    <script>
+        fetch('/graphs')
+            .then(response => response.json())
+            .then(data => {
+                var temp_dew = JSON.parse(data.temp_dew);
+                var windspeed = JSON.parse(data.windspeed);
+
+                Plotly.newPlot('temp_dew_graph', temp_dew.data, temp_dew.layout);
+                Plotly.newPlot('windspeed_graph', [windspeed]);
+            });
+    </script>
+</body>
+</html>

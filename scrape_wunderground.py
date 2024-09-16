@@ -17,20 +17,25 @@ path to executable has to be updated below ("chromedriver_path").
 Zach Perzan, 2021-07-28
 Modified ever so slightly by Kelly Kemnitz, 9/12/2024"""
 
-import yaml
-import time
+# import dash
+# from dash import Dash, dash_table, html, dcc
 from datetime import datetime, timedelta
-
-import dash
-from dash import Dash, dash_table, html, dcc
+from flask import Flask, render_template, jsonify
+import json
 import numpy as np
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
+import plotly.utils
+from plotly.subplots import make_subplots
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+import time
+import yaml
+
+app = Flask(__name__)
 
 
 class WeatherStation:
@@ -137,11 +142,11 @@ def scrape_wunderground(station, date, freq, chromedriver_path):
 
     columns = {'5min': ['Temperature', 'Dew Point', 'Humidity', 'Wind Speed',
                         'Wind Gust', 'Pressure', 'Precip. Rate', 'Precip. Accum.'],
-               'daily': ['Temperature_High', 'Temperature_Avg', 'Temperature_Low',
-                         'DewPoint_High', 'DewPoint_Avg', 'DewPoint_Low',
-                         'Humidity_High', 'Humidity_Avg', 'Humidity_Low',
-                         'WindSpeed_High', 'WindSpeed_Avg', 'WindSpeed_Low',
-                         'Pressure_High', 'Pressure_Low', 'Precip_Sum']}
+            'daily': ['Temperature_High', 'Temperature_Avg', 'Temperature_Low',
+                        'DewPoint_High', 'DewPoint_Avg', 'DewPoint_Low',
+                        'Humidity_High', 'Humidity_Avg', 'Humidity_Low',
+                        'WindSpeed_High', 'WindSpeed_Avg', 'WindSpeed_Low',
+                        'Pressure_High', 'Pressure_Low', 'Precip_Sum']}
 
     # Convert NaN values (stings of '--') to np.nan
     data_nan = [np.nan if x == '--' else x for x in data]
@@ -251,61 +256,66 @@ def scrape_multidate(station, start_date, end_date, freq):
 
     return df
 
-def df_to_html(df):
-    return df.to_html('%s_%s.html' % (ws.station, ws.date))
-
-def df_to_csv(df):
-    return df.to_csv('%s_%s.csv' % (ws.station, ws.date))
-
-def run_dash(df):
-    app = dash.Dash(__name__)
-
-    df_temperature = df[['Timestamp', 'Temperature']]
-    df_dewpoint = df[['Timestamp', 'Dew Point']]
-    df_pressure = df[['Timestamp', 'Pressure']]
-
-    app = dash.Dash(__name__)
-
-    app.layout = html.Div(
-        [
-            html.H1('weather.kellykemnitz.com'),
-            html.H4('Temperature', style={'textAlign': 'center'}),
-            html.Div(
-                children=[
-                    dcc.Graph(
-                        id='temperature',
-                        figure=px.line(df_temperature, x='Timestamp', y='Temperature')
-                    )
-                ]
-            ),
-            html.H4('Dew Point', style={'textAlign': 'center'}),
-            html.Div(
-                children=[
-                    dcc.Graph(
-                        id='dewpoint',
-                        figure=px.line(df_dewpoint, x='Timestamp', y='Dew Point')
-                    )
-                ]
-            ),
-            html.H4('Pressure', style={'textAlign': 'center'}),
-            html.Div(
-                children=[
-                    dcc.Graph(
-                        id='pressure',
-                        figure=px.line(df_pressure, x='Timestamp', y='Pressure')
-                    )
-                ]
-            )
-        ]
+def create_graphs(df):
+    temperature = go.Scatter(
+            x = df['Timestamp'],
+            y = df['Temperature'],
+            name = 'temperature'
     )
 
-    app.run()
+    dewpoint = go.Scatter(
+        x = df['Timestamp'],
+        y = df['Dew Point'],
+        name = 'dewpoint'
+    )
+
+    windspeed = go.Scatter(
+        x = df['Timestamp'],
+        y = df['Wind Speed'],
+        name = 'windspeed'
+    )
+
+    temp_dew = make_subplots(specs=[[{"secondary_y": True}]])
+    temp_dew.add_trace(temperature)
+    temp_dew.add_trace(dewpoint)
+    
+    temp_dew_json = json.dumps(temp_dew, cls=plotly.utils.PlotlyJSONEncoder)
+    windspeed_json = json.dumps(windspeed, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return temp_dew_json, windspeed_json
+
+def df_to_html(df, station, date):
+    return df.to_html('%s_%s.html' % (station, date))
+
+def df_to_csv(df, station, date):
+    return df.to_csv('%s_%s.csv' % (station, date))
+
+@app.route('/graph')
+def graph():
+    temp_dew_json, windspeed_json = create_graphs(df)
+    return jsonify(temp_dew=temp_dew_json, windspeed=windspeed_json)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 if __name__ == "__main__":
     ws = WeatherStation()
+    try:
+        df = scrape_multiattempt(ws.station, ws.date, ws.freq, ws.chromedriver_path, attempts=4, wait_time=5.0)
+        if df is not None:
+            app.run()
+        else:
+            print(f'No data available for station {ws.station} on {ws.date}')
 
-    df = scrape_multiattempt(ws.station, ws.date, ws.freq, ws.chromedriver_path, attempts=4, wait_time=5.0)
+        # graph_objects = create_graphs(df)
+        
+        # df_to_csv(df, ws.station, ws.date)
+        # df_to_html(df, ws.station, ws.date)
+        
 
-    df_to_csv(df)
-    df_to_html(df)
-    run_dash(df)
+        
+        
+        
+    except Exception as e:
+        print(f'Unable to return data for station {ws.station}: {e}')
