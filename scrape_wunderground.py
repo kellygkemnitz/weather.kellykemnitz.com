@@ -17,10 +17,7 @@ path to executable has to be updated below ("chromedriver_path").
 Zach Perzan, 2021-07-28
 Modified ever so slightly by Kelly Kemnitz, 9/12/2024"""
 
-# import dash
-# from dash import Dash, dash_table, html, dcc
 from datetime import datetime, timedelta
-from flask import Flask, render_template, jsonify
 import json
 import numpy as np
 import pandas as pd
@@ -31,11 +28,8 @@ from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
 import time
 import yaml
-
-app = Flask(__name__)
 
 
 class WeatherStation:
@@ -47,183 +41,40 @@ class WeatherStation:
         self.date = datetime.today().strftime("%Y-%m-%d")
         self.freq = settings['freq']
         self.chromedriver_path = settings['chromedriver_path']
+        self.attempts = settings['attempts']
+        self.wait_time = settings['wait_time']
 
     def get_settings(self):
-        return self.station, self.date, self.freq, self.chromedriver_path
+        return self.station, self.date, self.freq, self.chromedriver_path, self.attempts, self.wait_time
 
-def render_page(url, chromedriver_path):
-    """Given a url, render it with chromedriver and return the html source
-
-    Parameters
-    ----------
-        url : str
-            url to render
-        chromedriver_path : str
-            Path to location of chromedriver
-
-    Returns
-    -------
-        r :
-            rendered page source
-    """
-    chrome_service = Service(chromedriver_path)
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")
-    driver = webdriver.Chrome(service = chrome_service, options = chrome_options)
-    driver.get(url)
-    time.sleep(3) # Could potentially decrease the sleep time
-    r = driver.page_source
-    driver.quit()
-
-    return r
-
-def scrape_wunderground(station, date, freq, chromedriver_path):
-    """Given a PWS station ID and date, scrape that day's data from Weather
-    Underground and return it as a dataframe.
-
-    Parameters
-    ----------
-        station : str
-            The personal weather station ID
-        date : str
-            The date for which to acquire data, formatted as 'YYYY-MM-DD'
-        freq : {'5min', 'daily'}
-            Whether to download 5-minute weather observations or daily
-            summaries (average, min and max for each day)
-        chromedriver_path : str
-            Path to the location of chromedriver
-
-    Returns
-    -------
-        df : dataframe or None
-            A dataframe of weather observations, with index as pd.DateTimeIndex
-            and columns as the observed data
-    """
-
-    # the url for 5-min data is called "daily" on weather underground
-    if freq == '5min':
-        timespan = 'daily'
-    # the url for daily summary data (avg/min/max) is called "monthly" on wunderground
-    elif freq == 'daily':
-        timespan = 'monthly'
-
-    # Render the url and open the page source as BS object
-    url = 'https://www.wunderground.com/dashboard/pws/%s/table/%s/%s/%s' % (station,
-                                                                            date, date,
-                                                                            timespan)
-    r = render_page(url, chromedriver_path)
-    soup = BS(r, "html.parser")
-
-    container = soup.find('lib-history-table')
-
-    # Check that lib-history-table is found
-    if container is None:
-        raise ValueError("could not find lib-history-table in html source for %s" % url)
-
-    # Get the timestamps and data from two separate 'tbody' tags
-    all_checks = container.find_all('tbody')
-    time_check = all_checks[0]
-    data_check = all_checks[1]
-
-    # Iterate through 'tr' tags and get the timestamps
-    hours = []
-    for i in time_check.find_all('tr'):
-        trial = i.get_text()
-        hours.append(trial)
-
-    # For data, locate both value and no-value ("--") classes
-    classes = ['wu-value wu-value-to', 'wu-unit-no-value ng-star-inserted']
-
-    # Iterate through span tags and get data
-    data = []
-    for i in data_check.find_all('span', class_=classes):
-        trial = i.get_text()
-        data.append(trial)
-
-    columns = {'5min': ['Temperature', 'Dew Point', 'Humidity', 'Wind Speed',
-                        'Wind Gust', 'Pressure', 'Precip. Rate', 'Precip. Accum.'],
-            'daily': ['Temperature_High', 'Temperature_Avg', 'Temperature_Low',
-                        'DewPoint_High', 'DewPoint_Avg', 'DewPoint_Low',
-                        'Humidity_High', 'Humidity_Avg', 'Humidity_Low',
-                        'WindSpeed_High', 'WindSpeed_Avg', 'WindSpeed_Low',
-                        'Pressure_High', 'Pressure_Low', 'Precip_Sum']}
-
-    # Convert NaN values (stings of '--') to np.nan
-    data_nan = [np.nan if x == '--' else x for x in data]
-
-    # Convert list of data to an array
-    data_array = np.array(data_nan, dtype=float)
-    data_array = data_array.reshape(-1, len(columns[freq]))
-
-    # Prepend date to HH:MM strings
-    if freq == '5min':
-        timestamps = ['%s %s' % (date, t) for t in hours]
-    else:
-        timestamps = hours
-
-    # Convert to dataframe
-    df = pd.DataFrame(index=timestamps, data=data_array, columns=columns[freq])
-    df.index = pd.to_datetime(df.index, format='%Y-%m-%d %I:%M %p')
-    df.reset_index(inplace=True)
-    df.rename(columns={'index': 'Timestamp'}, inplace=True)
-
-    return df
-
-def scrape_multiattempt(station, date, freq, chromedriver_path, attempts, wait_time):
-    """Try to scrape data from Weather Underground. If there is an error on the
-    first attempt, try again.
-
-    Parameters
-    ----------
-        station : str
-            The personal weather station ID
-        date : str
-            The date for which to acquire data, formatted as 'YYYY-MM-DD'
-        freq : {'5min', 'daily'}
-            Whether to download 5-minute weather observations or daily
-            summaries (average, min and max for each day)
-        chromedriver_path : str
-            Path to the location of chromedriver
-        attempts : int, default 4
-            Maximum number of times to try accessing before failure
-        wait_time : float, default 5.0
-            Amount of time to wait in between attempts
-        
-    Returns
-    -------
-        df : dataframe or None
-            A dataframe of weather observations, with index as pd.DateTimeIndex
-            and columns as the observed data
-    """
-
-    # Try to download data limited number of attempts
-    for n in range(attempts):
-        try:
-            df = scrape_wunderground(station, date, freq, chromedriver_path)
-        except:
-            # if unsuccessful, pause and retry
-            time.sleep(wait_time)
-        else:
-            # if successful, then break
-            break
-    # If all attempts failed, return empty df
-    else:
-        df = pd.DataFrame()
-
-    return df
-
-def scrape_multidate(station, start_date, end_date, freq):
-    """Given a PWS station ID and a start and end date, scrape data from Weather
-        Underground for that date range and return it as a dataframe.
+    def render_page(self, url):
+        """Given a url, render it with chromedriver and return the html source
 
         Parameters
         ----------
-            station : str
-                The personal weather station ID
-            start_date : str
-                The date for which to begin acquiring data, formatted as 'YYYY-MM-DD'
-            end_date : str
-                The date for which to end acquiring data, formatted as 'YYYY-MM-DD'
+            url : str
+                url to render
+
+        Returns
+        -------
+            r :
+                rendered page source
+        """
+
+        chrome_service = Service(self.chromedriver_path)
+        chrome_options = Options()
+        chrome_options.add_argument("--headless=new")
+        driver = webdriver.Chrome(service = chrome_service, options = chrome_options)
+        driver.get(url)
+        time.sleep(3) # Could potentially decrease the sleep time
+        rendered_page = driver.page_source
+        driver.quit()
+
+        return rendered_page
+
+    def scrape_wunderground(self):
+        """Given a PWS station ID and date, scrape that day's data from Weather
+        Underground and return it as a dataframe.
 
         Returns
         -------
@@ -231,91 +82,282 @@ def scrape_multidate(station, start_date, end_date, freq):
                 A dataframe of weather observations, with index as pd.DateTimeIndex
                 and columns as the observed data
         """
-    # Convert end_date and start_date to datetime types
-    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
 
-    # Calculate time delta
-    delta = end_date - start_date
+        # the url for 5-min data is called "daily" on weather underground
+        if self.freq == '5min':
+            timespan = 'daily'
+        # the url for daily summary data (avg/min/max) is called "monthly" on wunderground
+        elif self.freq == 'daily':
+            timespan = 'monthly'
 
-    # Create list dates and append all days within the start and end date to dates
-    dates = []
-    for i in range(delta.days + 1):
-        day = start_date + timedelta(days=i)
-        dates.append(day)
-    dates = [date.strftime('%Y-%m-%d') for date in dates]
+        # Render the url and open the page source as BS object
+        url = 'https://www.wunderground.com/dashboard/pws/%s/table/%s/%s/%s' % (self.station,
+                                                                                self.date, self.date,
+                                                                                timespan)
+        r = self.render_page(url)
+        soup = BS(r, "html.parser")
 
-    # Repeat the station name in a list for as many dates are in the date range
-    stations = [station] * len(dates)
+        container = soup.find('lib-history-table')
 
-    # Scrape wunderground for data from all dates in range and store in list of dateframes
-    df_list = list(map(scrape_multiattempt, stations, dates, freq=freq))
+        # Check that lib-history-table is found
+        if container is None:
+            raise ValueError("could not find lib-history-table in html source for %s" % url)
 
-    # Convert list of dataframes to one dataframe
-    df = pd.concat(df_list)
+        # Get the timestamps and data from two separate 'tbody' tags
+        all_checks = container.find_all('tbody')
+        time_check = all_checks[0]
+        data_check = all_checks[1]
 
-    return df
+        # Iterate through 'tr' tags and get the timestamps
+        hours = []
+        for i in time_check.find_all('tr'):
+            trial = i.get_text()
+            hours.append(trial)
 
-def create_graphs(df):
-    temperature = go.Scatter(
+        # For data, locate both value and no-value ("--") classes
+        classes = ['wu-value wu-value-to', 'wu-unit-no-value ng-star-inserted']
+
+        # Iterate through span tags and get data
+        data = []
+        for i in data_check.find_all('span', class_=classes):
+            trial = i.get_text()
+            data.append(trial)
+
+        columns = {'5min': ['Temperature', 'Dew Point', 'Humidity', 'Wind Speed',
+                            'Wind Gust', 'Pressure', 'Precip. Rate', 'Precip. Accum.'],
+                'daily': ['Temperature_High', 'Temperature_Avg', 'Temperature_Low',
+                            'DewPoint_High', 'DewPoint_Avg', 'DewPoint_Low',
+                            'Humidity_High', 'Humidity_Avg', 'Humidity_Low',
+                            'WindSpeed_High', 'WindSpeed_Avg', 'WindSpeed_Low',
+                            'Pressure_High', 'Pressure_Low', 'Precip_Sum']}
+
+        # Convert NaN values (stings of '--') to np.nan
+        data_nan = [np.nan if x == '--' else x for x in data]
+
+        # Convert list of data to an array
+        data_array = np.array(data_nan, dtype=float)
+        data_array = data_array.reshape(-1, len(columns[self.freq]))
+
+        # Prepend date to HH:MM strings
+        if self.freq == '5min':
+            timestamps = ['%s %s' % (self.date, t) for t in hours]
+        else:
+            timestamps = hours
+
+        # Convert to dataframe
+        df = pd.DataFrame(index=timestamps, data=data_array, columns=columns[self.freq])
+        df.index = pd.to_datetime(df.index, format='%Y-%m-%d %I:%M %p')
+        df.reset_index(inplace=True)
+        df.rename(columns={'index': 'Timestamp'}, inplace=True)
+
+        return df
+
+    def scrape_multiattempt(self):
+        """Try to scrape data from Weather Underground. If there is an error on the
+        first attempt, try again.
+
+        Returns
+        -------
+            df : dataframe or None
+                A dataframe of weather observations, with index as pd.DateTimeIndex
+                and columns as the observed data
+        """
+
+        # Try to download data limited number of attempts
+        for n in range(self.attempts):
+            try:
+                df = self.scrape_wunderground()
+            except:
+                # if unsuccessful, pause and retry
+                time.sleep(self.wait_time)
+            else:
+                # if successful, then break
+                break
+        # If all attempts failed, return empty df
+        else:
+            df = pd.DataFrame()
+
+        return df
+
+    def scrape_multidate(self, start_date, end_date):
+        """Given a PWS station ID and a start and end date, scrape data from Weather
+            Underground for that date range and return it as a dataframe.
+
+            Parameters
+            ----------
+                start_date : str
+                    The date for which to begin acquiring data, formatted as 'YYYY-MM-DD'
+                end_date : str
+                    The date for which to end acquiring data, formatted as 'YYYY-MM-DD'
+
+            Returns
+            -------
+                df : dataframe or None
+                    A dataframe of weather observations, with index as pd.DateTimeIndex
+                    and columns as the observed data
+        """
+        
+        # Convert end_date and start_date to datetime types
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+
+        # Calculate time delta
+        delta = end_date - start_date
+
+        # Create list dates and append all days within the start and end date to dates
+        dates = []
+        for i in range(delta.days + 1):
+            day = start_date + timedelta(days=i)
+            dates.append(day)
+        dates = [date.strftime('%Y-%m-%d') for date in dates]
+
+        # Repeat the station name in a list for as many dates are in the date range
+        stations = [self.station] * len(dates)
+
+        # Scrape wunderground for data from all dates in range and store in list of dateframes
+        df_list = list(map(self.scrape_multiattempt, stations, dates, freq=self.freq))
+
+        # Convert list of dataframes to one dataframe
+        df = pd.concat(df_list)
+
+        return df
+    
+    def to_html(self, df):
+        """Convert dataframe to HTML file
+
+        Parameters
+        ----------
+            df : dataframe
+                The dataframe to convert to HTML
+
+        Returns
+        -------
+            str
+                The path to the saved HTML file
+        """
+        file_path = f'{self.station}_{self.date}.html'
+        df.to_html(file_path)
+        return file_path
+
+    def to_csv(self, df):
+        """Convert dataframe to CSV file
+
+        Parameters
+        ----------
+            df : dataframe
+                The dataframe to convert to CSV
+
+        Returns
+        -------
+            str
+                The path to the saved CSV file
+        """
+        file_path = f'{self.station}_{self.date}.csv'
+        df.to_csv(file_path)
+        return file_path
+    
+    def create_graphs(self, df):
+        if df is None:
+            return None
+        
+        temperature = go.Scatter(
             x = df['Timestamp'],
             y = df['Temperature'],
-            name = 'temperature'
-    )
+            name = 'Temperature'
+        )
 
-    dewpoint = go.Scatter(
-        x = df['Timestamp'],
-        y = df['Dew Point'],
-        name = 'dewpoint'
-    )
+        dewpoint = go.Scatter(
+            x = df['Timestamp'],
+            y = df['Dew Point'],
+            name = 'Dewpoint'
+        )
 
-    windspeed = go.Scatter(
-        x = df['Timestamp'],
-        y = df['Wind Speed'],
-        name = 'windspeed'
-    )
+        humidity = go.Scatter(
+            x = df['Timestamp'],
+            y = df['Humidity'],
+            name = 'Humidity'
+        )
 
-    temp_dew = make_subplots(specs=[[{"secondary_y": True}]])
-    temp_dew.add_trace(temperature)
-    temp_dew.add_trace(dewpoint)
-    
-    temp_dew_json = json.dumps(temp_dew, cls=plotly.utils.PlotlyJSONEncoder)
-    windspeed_json = json.dumps(windspeed, cls=plotly.utils.PlotlyJSONEncoder)
+        windspeed = go.Scatter(
+            x = df['Timestamp'],
+            y = df['Wind Speed'],
+            name = 'Wind Speed'
+        )
 
-    return temp_dew_json, windspeed_json
+        windgust = go.Scatter(
+            x = df['Timestamp'],
+            y = df['Wind Gust'],
+            name = 'Wind Gust'
+        )
 
-def df_to_html(df, station, date):
-    return df.to_html('%s_%s.html' % (station, date))
+        pressure = go.Scatter(
+            x = df['Timestamp'],
+            y = df['Pressure'],
+            name = 'Pressure'
+        )
 
-def df_to_csv(df, station, date):
-    return df.to_csv('%s_%s.csv' % (station, date))
+        precip_rate = go.Scatter(
+            x = df['Timestamp'],
+            y = df['Precip. Rate'],
+            name = 'Precipitation Rate'
+        )
 
-@app.route('/graph')
-def graph():
-    temp_dew_json, windspeed_json = create_graphs(df)
-    return jsonify(temp_dew=temp_dew_json, windspeed=windspeed_json)
+        precip_accum = go.Scatter(
+            x = df['Timestamp'],
+            y = df['Precip. Accum.'],
+            name = 'Precipitation Accumulation'
+        )
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-if __name__ == "__main__":
-    ws = WeatherStation()
-    try:
-        df = scrape_multiattempt(ws.station, ws.date, ws.freq, ws.chromedriver_path, attempts=4, wait_time=5.0)
-        if df is not None:
-            app.run()
-        else:
-            print(f'No data available for station {ws.station} on {ws.date}')
-
-        # graph_objects = create_graphs(df)
+        temp_dew_graph = make_subplots(specs=[[{"secondary_y": True}]])
+        temp_dew_graph.add_trace(temperature, secondary_y=False)
+        temp_dew_graph.add_trace(dewpoint, secondary_y=True)
         
-        # df_to_csv(df, ws.station, ws.date)
-        # df_to_html(df, ws.station, ws.date)
+        humidity_graph, windspeed_graph, windgust_graph, pressure_graph, precip_rate_graph, precip_accum_graph = go.Figure()
         
+        humidity_graph.add_trace(humidity)
+        windspeed_graph.add_trace(windspeed)
+        windgust_graph.add_trace(windgust)
+        pressure_graph.add_trace(pressure)
+        precip_rate_graph.add_trace(precip_rate)
+        precip_accum_graph.add_trace(precip_accum)
 
+        graphs = {
+            "temp_dew_graph": json.dumps(temp_dew_graph, cls=plotly.utils.PlotlyJSONEncoder),
+            "humidity_graph": json.dumps(humidity_graph, cls=plotly.utils.PlotlyJSONEncoder),
+            "windspeed_graph": json.dumps(windspeed_graph, cls=plotly.utils.PlotlyJSONEncoder),
+            "windgust_graph": json.dumps(windgust_graph, cls=plotly.utils.PlotlyJSONEncoder),
+            "pressure_graph": json.dumps(pressure_graph, cls=plotly.utils.PlotlyJSONEncoder),
+            "precip_rate_graph": json.dumps(precip_rate_graph, cls=plotly.utils.PlotlyJSONEncoder),
+            "precip_accum_graph": json.dumps(precip_accum_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        }
         
-        
-        
-    except Exception as e:
-        print(f'Unable to return data for station {ws.station}: {e}')
+        return graphs
+
+# @app.route('/graph')
+# def graph():
+#     # temp_dew_json, windspeed_json = create_graphs(df)
+#     temp_dew_json = create_graphs(df)
+#     # return jsonify(temp_dew=temp_dew_json, windspeed=windspeed_json)
+#     return jsonify(temp_dew=temp_dew_json)
+#     # return temp_dew_json
+
+# @app.route('/')
+# def index():
+#     temp_dew_json = create_graphs(df)
+#     return render_template('index.html', graphJSON=temp_dew_json)
+
+# if __name__ == "__main__":
+#     ws = WeatherStation()
+#     try:
+#         df = ws.scrape_wunderground()
+#         if df is not None:
+#             # html_file = ws.to_html(df)
+#             # csv_file = ws.to_csv(df)
+#             # graph_json = ws.create_graphs(df)
+#             pass
+#             # app.run()
+#         else:
+#             print(f'No data available for station {ws.station} on {ws.date}')
+
+#     except Exception as e:
+#         print(f'Unable to return data for station {ws.station}: {e}')

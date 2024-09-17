@@ -2,3 +2,5 @@
 station: KKSWICHI504
 freq: 5min
 chromedriver_path: "/usr/bin/chromedriver"
+attempts: 4
+wait_time: 5.0

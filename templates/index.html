@@ -1,23 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>weather.kellykemnitz.com</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Station Graphs</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-    <h1>Weather Graphs</h1>
+    <h1>Weather Station Graphs</h1>
     <div id="temp_dew_graph"></div>
     <div id="windspeed_graph"></div>
     <script>
-        fetch('/graphs')
-            .then(response => response.json())
-            .then(data => {
-                var temp_dew = JSON.parse(data.temp_dew);
-                var windspeed = JSON.parse(data.windspeed);
-
-                Plotly.newPlot('temp_dew_graph', temp_dew.data, temp_dew.layout);
-                Plotly.newPlot('windspeed_graph', [windspeed]);
-            });
+        var temp_dew_graph = {{ graphs.temp_dew_graph | safe }};
+        var windspeed_graph = {{ graphs.windspeed_graph | safe }};
+        Plotly.newPlot('temp_dew_graph', temp_dew_graph.data, temp_dew_graph.layout);
+        Plotly.newPlot('windspeed_graph', windspeed_graph.data, windspeed_graph.layout);
     </script>
 </body>
 </html>
