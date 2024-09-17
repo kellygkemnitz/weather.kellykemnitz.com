@@ -260,78 +260,95 @@ class WeatherStation:
         if df is None:
             return None
         
-        temperature = go.Scatter(
-            x = df['Timestamp'],
-            y = df['Temperature'],
-            name = 'Temperature'
-        )
-
-        dewpoint = go.Scatter(
-            x = df['Timestamp'],
-            y = df['Dew Point'],
-            name = 'Dewpoint'
-        )
-
-        humidity = go.Scatter(
-            x = df['Timestamp'],
-            y = df['Humidity'],
-            name = 'Humidity'
-        )
-
-        windspeed = go.Scatter(
-            x = df['Timestamp'],
-            y = df['Wind Speed'],
-            name = 'Wind Speed'
-        )
-
-        windgust = go.Scatter(
-            x = df['Timestamp'],
-            y = df['Wind Gust'],
-            name = 'Wind Gust'
-        )
-
-        pressure = go.Scatter(
-            x = df['Timestamp'],
-            y = df['Pressure'],
-            name = 'Pressure'
-        )
-
-        precip_rate = go.Scatter(
-            x = df['Timestamp'],
-            y = df['Precip. Rate'],
-            name = 'Precipitation Rate'
-        )
-
-        precip_accum = go.Scatter(
-            x = df['Timestamp'],
-            y = df['Precip. Accum.'],
-            name = 'Precipitation Accumulation'
-        )
-
-        temp_dew_graph = make_subplots(specs=[[{"secondary_y": True}]])
-        temp_dew_graph.add_trace(temperature, secondary_y=False)
-        temp_dew_graph.add_trace(dewpoint, secondary_y=True)
+        graphs = {}
         
-        humidity_graph, windspeed_graph, windgust_graph, pressure_graph, precip_rate_graph, precip_accum_graph = go.Figure()
-        
-        humidity_graph.add_trace(humidity)
-        windspeed_graph.add_trace(windspeed)
-        windgust_graph.add_trace(windgust)
-        pressure_graph.add_trace(pressure)
-        precip_rate_graph.add_trace(precip_rate)
-        precip_accum_graph.add_trace(precip_accum)
+        for column in df.columns:
+            if column != 'Timestamp':
+                graphs[column] = go.Scatter(
+                    x = df['Timestamp'],
+                    y = df[column],
+                    name = column
+            )
 
-        graphs = {
-            "temp_dew_graph": json.dumps(temp_dew_graph, cls=plotly.utils.PlotlyJSONEncoder),
-            "humidity_graph": json.dumps(humidity_graph, cls=plotly.utils.PlotlyJSONEncoder),
-            "windspeed_graph": json.dumps(windspeed_graph, cls=plotly.utils.PlotlyJSONEncoder),
-            "windgust_graph": json.dumps(windgust_graph, cls=plotly.utils.PlotlyJSONEncoder),
-            "pressure_graph": json.dumps(pressure_graph, cls=plotly.utils.PlotlyJSONEncoder),
-            "precip_rate_graph": json.dumps(precip_rate_graph, cls=plotly.utils.PlotlyJSONEncoder),
-            "precip_accum_graph": json.dumps(precip_accum_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        graph_specs = {
+            "temp_dew_graph": {
+                "traces": ["Temperature", "Dew Point"],
+                "secondary_y": [False, True]
+            },
+            "humidity_graph": {
+                "traces": ["Humidity"],
+                "secondary_y": [False]
+            },
+            "windspeed_graph": {
+                "traces": ["Wind Speed"],
+                "secondary_y": [False]
+            },
+            "windgust_graph": {
+                "traces": ["Wind Gust"],
+                "secondary_y": [False]
+            },
+            "pressure_graph": {
+                "traces": ["Pressure"],
+                "secondary_y": [False]
+            },
+            "precip_rate_graph": {
+                "traces": ["Precip. Rate"],
+                "secondary_y": [False]
+            },
+            "precip_accum_graph": {
+                "traces": ["Precip. Accum."],
+                "secondary_y": [False]
+            }
         }
+
+        json_graphs = {}
+        for graph_name, spec in graph_specs.items():
+            if len(spec["traces"]) > 1:
+                fig = make_subplots(specs=[[{"secondary_y": True}]])
+                for trace, secondary_y in zip(spec["traces"], spec["secondary_y"]):
+                    fig.add_trace(graphs[trace], secondary_y=secondary_y)
+            else:
+                fig = go.Figure()
+                fig.add_trace(graphs[spec["traces"][0]])
+
+            json_graphs[graph_name] = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+        return json_graphs
+    
+
+        # temp_dew_graph = make_subplots(specs=[[{"secondary_y": True}]])
+        # temp_dew_graph.add_trace(graphs['Temperature'], secondary_y=False)
+        # temp_dew_graph.add_trace(graphs['Dew Point'], secondary_y=True)
         
-        return graphs
+        # humidity_graph = go.Figure()
+        # humidity_graph.add_trace(graphs['Humidity'])
+
+        # windspeed_graph = go.Figure()
+        # windspeed_graph.add_trace(graphs['Wind Speed'])
+
+        # windgust_graph = go.Figure()
+        # windgust_graph.add_trace(graphs['Wind Gust'])
+
+        # pressure_graph = go.Figure()
+        # pressure_graph.add_trace(graphs['Pressure'])
+
+        # precip_rate_graph = go.Figure()
+        # precip_rate_graph.add_trace(graphs['Precip. Rate'])
+
+        # precip_accum_graph = go.Figure()
+        # precip_accum_graph.add_trace(graphs['Precip Accum.'])
+
+        # json_graphs = {
+        #     "temp_dew_graph": json.dumps(temp_dew_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        #     "humidity_graph": json.dumps(humidity_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        #     "windspeed_graph": json.dumps(windspeed_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        #     "windgust_graph": json.dumps(windgust_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        #     "pressure_graph": json.dumps(pressure_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        #     "precip_rate_graph": json.dumps(precip_rate_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        #     "precip_accum_graph": json.dumps(precip_accum_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        # }
+        
+        # return json_graphs
 
 # @app.route('/graph')
 # def graph():

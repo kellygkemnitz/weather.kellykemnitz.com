@@ -16,13 +16,13 @@
     <div id="precip_rate_graph"></div>
     <div id="precip_accum_graph"></div>
     <script>
-        var temp_dew_graph = {{ graphs.temp_dew_graph | safe }};
-        var humidity_graph = {{ graphs.humidity_graph | safe }};
-        var windspeed_graph = {{ graphs.windspeed_graph | safe }};
-        var windgust_graph = {{ graphs.windgust_graph | safe }};
-        var pressure_graph = {{ graphs.pressure_graph | safe }};
-        var precip_rate_graph = {{ graphs.precip_rate_graph | safe }};
-        var precip_accum_graph = {{ graphs.precip_accum_graph | safe }};
+        var temp_dew_graph = {{ json_graphs.temp_dew_graph | safe }};
+        var humidity_graph = {{ json_graphs.humidity_graph | safe }};
+        var windspeed_graph = {{ json_graphs.windspeed_graph | safe }};
+        var windgust_graph = {{ json_raphs.windgust_graph | safe }};
+        var pressure_graph = {{ json_graphs.pressure_graph | safe }};
+        var precip_rate_graph = {{ json_graphs.precip_rate_graph | safe }};
+        var precip_accum_graph = {{ json_graphs.precip_accum_graph | safe }};
         Plotly.newPlot('temp_dew_graph', temp_dew_graph.data, temp_dew_graph.layout);
         Plotly.newPlot('humidity_graph', humidity_graph.data, humidity_graph.layout);
         Plotly.newPlot('windspeed_graph', windspeed_graph.data, windspeed_graph.layout);

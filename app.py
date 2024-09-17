@@ -12,8 +12,8 @@ def home():
     try:
         df = ws.scrape_wunderground()
         if not df.empty:
-            graphs = ws.create_graphs(df)
-            return render_template('index.html', graphs=graphs)
+            json_graphs = ws.create_graphs(df)
+            return render_template('index.html', json_graphs=json_graphs)
         else:
             return jsonify({"error": "No data available."})
     except Exception as e:
