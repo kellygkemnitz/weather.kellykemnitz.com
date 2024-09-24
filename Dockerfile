@@ -7,7 +7,7 @@ COPY settings.yaml /scrape_wunderground/
 
 WORKDIR /scrape_wunderground
 
-RUN pip install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt
 
 EXPOSE 8080
 
