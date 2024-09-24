@@ -18,12 +18,8 @@ Zach Perzan, 2021-07-28
 Modified ever so slightly by Kelly Kemnitz, 9/12/2024"""
 
 from datetime import datetime, timedelta
-import json
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.utils
-from plotly.subplots import make_subplots
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -44,10 +40,27 @@ class WeatherStation:
         self.attempts = settings['attempts']
         self.wait_time = settings['wait_time']
 
-    def get_settings(self):
-        return self.station, self.date, self.freq, self.chromedriver_path, self.attempts, self.wait_time
+        if self.freq == '5min':
+            self.timespan = 'daily'
+        if self.freq == 'daily':
+            self.timespan = 'monthly'
 
-    def render_page(self, url):
+        self.url = f'https://www.wunderground.com/dashboard/pws/{self.station}/table/{self.date}/{self.date}/{self.timespan}'
+
+    def get_settings(self):
+        settings = {
+            'station': self.station,
+            'url': self.url,
+            'date': self.date,
+            'freq': self.freq,
+            'timespan': self.timespan,
+            'chromedriver_path': self.chromedriver_path,
+            'attempts': self.attempts,
+            'wait_time': self.wait_time
+        }
+
+        return settings
+    def render_page(self):
         """Given a url, render it with chromedriver and return the html source
 
         Parameters
@@ -64,9 +77,8 @@ class WeatherStation:
         chrome_service = Service(self.chromedriver_path)
         chrome_options = Options()
         chrome_options.add_argument("--headless=new")
-        driver = webdriver.Chrome(service = chrome_service, options = chrome_options)
-        driver.get(url)
-        time.sleep(3) # Could potentially decrease the sleep time
+        driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+        driver.get(self.url)
         rendered_page = driver.page_source
         driver.quit()
 
@@ -83,25 +95,14 @@ class WeatherStation:
                 and columns as the observed data
         """
 
-        # the url for 5-min data is called "daily" on weather underground
-        if self.freq == '5min':
-            timespan = 'daily'
-        # the url for daily summary data (avg/min/max) is called "monthly" on wunderground
-        elif self.freq == 'daily':
-            timespan = 'monthly'
-
-        # Render the url and open the page source as BS object
-        url = 'https://www.wunderground.com/dashboard/pws/%s/table/%s/%s/%s' % (self.station,
-                                                                                self.date, self.date,
-                                                                                timespan)
-        r = self.render_page(url)
+        r = self.render_page()
         soup = BS(r, "html.parser")
 
         container = soup.find('lib-history-table')
 
         # Check that lib-history-table is found
         if container is None:
-            raise ValueError("could not find lib-history-table in html source for %s" % url)
+            raise ValueError(f'could not find lib-history-table in html source for {self.url}')
 
         # Get the timestamps and data from two separate 'tbody' tags
         all_checks = container.find_all('tbody')
@@ -109,30 +110,30 @@ class WeatherStation:
         data_check = all_checks[1]
 
         # Iterate through 'tr' tags and get the timestamps
-        hours = []
-        for i in time_check.find_all('tr'):
-            trial = i.get_text()
-            hours.append(trial)
+        hours = list(map(lambda i: i.get_text(), time_check.find_all('tr')))
 
         # For data, locate both value and no-value ("--") classes
         classes = ['wu-value wu-value-to', 'wu-unit-no-value ng-star-inserted']
 
         # Iterate through span tags and get data
-        data = []
-        for i in data_check.find_all('span', class_=classes):
-            trial = i.get_text()
-            data.append(trial)
+        data = list(map(lambda i: i.get_text(), data_check.find_all('span', class_=classes)))
 
-        columns = {'5min': ['Temperature', 'Dew Point', 'Humidity', 'Wind Speed',
-                            'Wind Gust', 'Pressure', 'Precip. Rate', 'Precip. Accum.'],
-                'daily': ['Temperature_High', 'Temperature_Avg', 'Temperature_Low',
-                            'DewPoint_High', 'DewPoint_Avg', 'DewPoint_Low',
-                            'Humidity_High', 'Humidity_Avg', 'Humidity_Low',
-                            'WindSpeed_High', 'WindSpeed_Avg', 'WindSpeed_Low',
-                            'Pressure_High', 'Pressure_Low', 'Precip_Sum']}
+        columns = {
+            '5min': [
+                'Temperature', 'Dew Point', 'Humidity', 'Wind Speed',
+                'Wind Gust', 'Pressure', 'Precip. Rate', 'Precip. Accum.'
+            ],
+            'daily': [
+                'Temperature_High', 'Temperature_Avg', 'Temperature_Low',
+                'DewPoint_High', 'DewPoint_Avg', 'DewPoint_Low',
+                'Humidity_High', 'Humidity_Avg', 'Humidity_Low',
+                'WindSpeed_High', 'WindSpeed_Avg', 'WindSpeed_Low',
+                'Pressure_High', 'Pressure_Low', 'Precip_Sum'
+            ]
+        }
 
         # Convert NaN values (stings of '--') to np.nan
-        data_nan = [np.nan if x == '--' else x for x in data]
+        data_nan = list(map(lambda x: np.nan if x == '--' else x, data))
 
         # Convert list of data to an array
         data_array = np.array(data_nan, dtype=float)
@@ -140,7 +141,7 @@ class WeatherStation:
 
         # Prepend date to HH:MM strings
         if self.freq == '5min':
-            timestamps = ['%s %s' % (self.date, t) for t in hours]
+            timestamps = list(map(lambda t: f'{self.date} {t}', hours))
         else:
             timestamps = hours
 
@@ -237,6 +238,7 @@ class WeatherStation:
         """
         file_path = f'{self.station}_{self.date}.html'
         df.to_html(file_path)
+        
         return file_path
 
     def to_csv(self, df):
@@ -254,127 +256,5 @@ class WeatherStation:
         """
         file_path = f'{self.station}_{self.date}.csv'
         df.to_csv(file_path)
+        
         return file_path
-    
-    def create_graphs(self, df):
-        if df is None:
-            return None
-        
-        graphs = {}
-        
-        for column in df.columns:
-            if column != 'Timestamp':
-                graphs[column] = go.Scatter(
-                    x = df['Timestamp'],
-                    y = df[column],
-                    name = column
-            )
-
-        graph_specs = {
-            "temp_dew_graph": {
-                "traces": ["Temperature", "Dew Point"],
-                "secondary_y": [False, True]
-            },
-            "humidity_graph": {
-                "traces": ["Humidity"],
-                "secondary_y": [False]
-            },
-            "windspeed_graph": {
-                "traces": ["Wind Speed"],
-                "secondary_y": [False]
-            },
-            "windgust_graph": {
-                "traces": ["Wind Gust"],
-                "secondary_y": [False]
-            },
-            "pressure_graph": {
-                "traces": ["Pressure"],
-                "secondary_y": [False]
-            },
-            "precip_rate_graph": {
-                "traces": ["Precip. Rate"],
-                "secondary_y": [False]
-            },
-            "precip_accum_graph": {
-                "traces": ["Precip. Accum."],
-                "secondary_y": [False]
-            }
-        }
-
-        json_graphs = {}
-        for graph_name, spec in graph_specs.items():
-            if len(spec["traces"]) > 1:
-                fig = make_subplots(specs=[[{"secondary_y": True}]])
-                for trace, secondary_y in zip(spec["traces"], spec["secondary_y"]):
-                    fig.add_trace(graphs[trace], secondary_y=secondary_y)
-            else:
-                fig = go.Figure()
-                fig.add_trace(graphs[spec["traces"][0]])
-
-            json_graphs[graph_name] = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-
-        return json_graphs
-    
-
-        # temp_dew_graph = make_subplots(specs=[[{"secondary_y": True}]])
-        # temp_dew_graph.add_trace(graphs['Temperature'], secondary_y=False)
-        # temp_dew_graph.add_trace(graphs['Dew Point'], secondary_y=True)
-        
-        # humidity_graph = go.Figure()
-        # humidity_graph.add_trace(graphs['Humidity'])
-
-        # windspeed_graph = go.Figure()
-        # windspeed_graph.add_trace(graphs['Wind Speed'])
-
-        # windgust_graph = go.Figure()
-        # windgust_graph.add_trace(graphs['Wind Gust'])
-
-        # pressure_graph = go.Figure()
-        # pressure_graph.add_trace(graphs['Pressure'])
-
-        # precip_rate_graph = go.Figure()
-        # precip_rate_graph.add_trace(graphs['Precip. Rate'])
-
-        # precip_accum_graph = go.Figure()
-        # precip_accum_graph.add_trace(graphs['Precip Accum.'])
-
-        # json_graphs = {
-        #     "temp_dew_graph": json.dumps(temp_dew_graph, cls=plotly.utils.PlotlyJSONEncoder),
-        #     "humidity_graph": json.dumps(humidity_graph, cls=plotly.utils.PlotlyJSONEncoder),
-        #     "windspeed_graph": json.dumps(windspeed_graph, cls=plotly.utils.PlotlyJSONEncoder),
-        #     "windgust_graph": json.dumps(windgust_graph, cls=plotly.utils.PlotlyJSONEncoder),
-        #     "pressure_graph": json.dumps(pressure_graph, cls=plotly.utils.PlotlyJSONEncoder),
-        #     "precip_rate_graph": json.dumps(precip_rate_graph, cls=plotly.utils.PlotlyJSONEncoder),
-        #     "precip_accum_graph": json.dumps(precip_accum_graph, cls=plotly.utils.PlotlyJSONEncoder),
-        # }
-        
-        # return json_graphs
-
-# @app.route('/graph')
-# def graph():
-#     # temp_dew_json, windspeed_json = create_graphs(df)
-#     temp_dew_json = create_graphs(df)
-#     # return jsonify(temp_dew=temp_dew_json, windspeed=windspeed_json)
-#     return jsonify(temp_dew=temp_dew_json)
-#     # return temp_dew_json
-
-# @app.route('/')
-# def index():
-#     temp_dew_json = create_graphs(df)
-#     return render_template('index.html', graphJSON=temp_dew_json)
-
-# if __name__ == "__main__":
-#     ws = WeatherStation()
-#     try:
-#         df = ws.scrape_wunderground()
-#         if df is not None:
-#             # html_file = ws.to_html(df)
-#             # csv_file = ws.to_csv(df)
-#             # graph_json = ws.create_graphs(df)
-#             pass
-#             # app.run()
-#         else:
-#             print(f'No data available for station {ws.station} on {ws.date}')
-
-#     except Exception as e:
-#         print(f'Unable to return data for station {ws.station}: {e}')

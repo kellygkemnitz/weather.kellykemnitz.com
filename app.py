@@ -1,35 +1,48 @@
-from flask import Flask, render_template, jsonify, request
-import pandas as pd
+import dash
+from dash import dcc, html
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from scrape_wunderground import WeatherStation
+from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
 
 
-app = Flask(__name__)
+app = dash.Dash(__name__)
 
 ws = WeatherStation()
 
-@app.route('/', methods=['GET'])
-def home():
-    try:
-        df = ws.scrape_wunderground()
-        if not df.empty:
-            json_graphs = ws.create_graphs(df)
-            return render_template('index.html', json_graphs=json_graphs)
-        else:
-            return jsonify({"error": "No data available."})
-    except Exception as e:
-        return jsonify({"error": str(e)})
+def update_data():
+    global df
+    df = ws.scrape_wunderground()
 
-# @app.route('/scrape', methods=['GET'])
-# def scrape_data():
-#     try:
-#         df = ws.scrape_wunderground()
-#         if not df.empty:
-#             graph_json = ws.create_graphs(df)
-#             return render_template('graph.html', graph_json=graph_json)
-#         else:
-#             return jsonify({"error": "No data available."})
-#     except Exception as e:
-#         return jsonify({"error": str(e)})
-    
-if __name__ == "__main__":
-    app.run(debug=True)
+scheduler = BackgroundScheduler()
+scheduler.add_job(update_data, 'interval', hours=1)
+scheduler.start()
+
+update_data()
+
+app.layout = html.Div(children=[
+    dcc.Graph(
+        id='temperature-dewpoint-graph',
+        figure=create_temperature_dewpoint_graph(df)
+    ),
+    dcc.Graph(
+        id='humidity-graph',
+        figure=create_humidity_graph(df)
+    ),
+    dcc.Graph(
+        id='wind-graph',
+        figure=create_wind_graph(df)
+    ),
+    dcc.Graph(
+        id='rain-graph',
+        figure=create_rain_graph(df)
+    ),
+    dcc.Graph(
+        id='pressure-graph',
+        figure=create_pressure_graph(df)
+    )
+])
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
