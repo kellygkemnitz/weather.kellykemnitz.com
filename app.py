@@ -7,7 +7,7 @@ from scrape_wunderground import WeatherStation
 from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
 
 
-app = dash.Dash(__name__)
+weather = dash.Dash(__name__)
 
 ws = WeatherStation()
 
@@ -21,7 +21,7 @@ scheduler.start()
 
 update_data()
 
-app.layout = html.Div(children=[
+weather.layout = html.Div(children=[
     dcc.Graph(
         id='temperature-dewpoint-graph',
         figure=create_temperature_dewpoint_graph(df)
@@ -45,4 +45,4 @@ app.layout = html.Div(children=[
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    weather.run_server(debug=True)

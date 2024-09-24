@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:latest
 
 COPY app.py plotly_graphs.py scrape_wunderground.py /scrape_wunderground/
 COPY README.md /scrape_wunderground/
