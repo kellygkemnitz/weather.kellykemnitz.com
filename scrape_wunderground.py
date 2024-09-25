@@ -77,6 +77,7 @@ class WeatherStation:
         chrome_service = Service(self.chromedriver_path)
         chrome_options = Options()
         chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--no-sandbox")
         driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
         driver.get(self.url)
         rendered_page = driver.page_source
