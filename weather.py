@@ -1,6 +1,8 @@
 import dash
 from dash import dcc, html
 from dash.dependencies import Output, Input
+import dash_bootstrap_components as dbc
+
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -10,7 +12,7 @@ from scrape_wunderground import WeatherStation
 from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.ZEPHYR, dbc.icons.FONT_AWESOME])
 
 ws = WeatherStation()
 
@@ -26,34 +28,36 @@ scheduler.start()
 
 update_data()
 
-app.layout = html.Div(children=[
-    dcc.Interval(
-        id='interval-component',
-        interval=5*60*1000,  # in milliseconds
-        n_intervals=0
-    ),
-    dcc.Graph(
-        id='temperature-dewpoint-graph',
-        figure=create_temperature_dewpoint_graph(df)
-    ),
-    dcc.Graph(
-        id='humidity-graph',
-        figure=create_humidity_graph(df)
-    ),
-    dcc.Graph(
-        id='wind-graph',
-        figure=create_wind_graph(df)
-    ),
-    dcc.Graph(
-        id='rain-graph',
-        figure=create_rain_graph(df)
-    ),
-    dcc.Graph(
-        id='pressure-graph',
-        figure=create_pressure_graph(df)
-    )
+app.layout = html.Div(
+    style={'fontFamily': 'Arial, sans-serif', 'padding': '10px'},
+    children=[
+        html.H1("weather.kellykemnitz.com", style={'textAlign': 'center', 'color': '#007ACC'}),
+        dcc.Interval(
+            id='interval-component',
+            interval=5*60*1000,  # in milliseconds
+            n_intervals=0
+        ),
+        dcc.Graph(
+            id='temperature-dewpoint-graph',
+            figure=create_temperature_dewpoint_graph(df)
+        ),
+        dcc.Graph(
+            id='humidity-graph',
+            figure=create_humidity_graph(df)
+        ),
+        dcc.Graph(
+            id='wind-graph',
+            figure=create_wind_graph(df)
+        ),
+        dcc.Graph(
+            id='rain-graph',
+            figure=create_rain_graph(df)
+        ),
+        dcc.Graph(
+            id='pressure-graph',
+            figure=create_pressure_graph(df)
+        )
 ])
-
 
 @app.callback(
     [Output('temperature-dewpoint-graph', 'figure'),
@@ -62,6 +66,7 @@ app.layout = html.Div(children=[
      Output('rain-graph', 'figure'),
      Output('pressure-graph', 'figure')],
     [Input('interval-component', 'n_intervals')])
+
 def update_graphs(n):
     return (create_temperature_dewpoint_graph(df),
             create_humidity_graph(df),
