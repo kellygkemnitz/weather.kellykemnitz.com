@@ -20,9 +20,7 @@ def create_temperature_dewpoint_graph(df):
     ))
 
     temperature_dewpoint_graph.update_layout(
-        title='Temperature/Dew Point',
-        xaxis_title='Time',
-        yaxis_title='Degrees'
+        yaxis_title='Degrees (°)',
     )
 
     return temperature_dewpoint_graph
@@ -38,9 +36,7 @@ def create_humidity_graph(df):
     ))
 
     humidity_graph.update_layout(
-        title='Humidity',
-        xaxis_title='Time',
-        yaxis_title='Humidity %'
+        yaxis_title='Humidity %',
     )
 
     return humidity_graph
@@ -64,9 +60,7 @@ def create_wind_graph(df):
     ))
 
     wind_graph.update_layout(
-        title='Wind',
-        xaxis_title='Time',
-        yaxis_title='MPH'
+        yaxis_title='MPH',
     )
 
     return wind_graph
@@ -96,10 +90,8 @@ def create_rain_graph(df):
     ))
 
     rain_graph.update_layout(
-        title='Rain',
-        xaxis_title='Time',
         yaxis_title='Inches',
-        barmode='group'
+        barmode='group',
     )
 
     return rain_graph
@@ -115,9 +107,7 @@ def create_pressure_graph(df):
     ))
 
     pressure_graph.update_layout(
-        title='Pressure',
         yaxis_title='Inches',
-        xaxis_title='Time'
     )
 
     return pressure_graph

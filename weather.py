@@ -31,33 +31,61 @@ update_data()
 app.layout = html.Div(
     style={'fontFamily': 'Arial, sans-serif', 'padding': '10px'},
     children=[
-        html.H1("weather.kellykemnitz.com", style={'textAlign': 'center', 'color': '#007ACC'}),
         dcc.Interval(
             id='interval-component',
             interval=5*60*1000,  # in milliseconds
-            n_intervals=0
-        ),
-        dcc.Graph(
-            id='temperature-dewpoint-graph',
-            figure=create_temperature_dewpoint_graph(df)
-        ),
-        dcc.Graph(
-            id='humidity-graph',
-            figure=create_humidity_graph(df)
-        ),
-        dcc.Graph(
-            id='wind-graph',
-            figure=create_wind_graph(df)
-        ),
-        dcc.Graph(
-            id='rain-graph',
-            figure=create_rain_graph(df)
-        ),
-        dcc.Graph(
-            id='pressure-graph',
-            figure=create_pressure_graph(df)
+            n_intervals=0),
+
+        html.H1("weather.kellykemnitz.com", style={'color': '#2B350E', 'textAlign': 'center'}),
+        
+        dcc.Tabs(
+            id='tabs',
+            style={'backgroundColor': '#2B350E', 'color': '#000000'},
+            children=[
+                dcc.Tab(label='Temperature & Dewpoint', children=[
+                    dcc.Graph(
+                        id='temperature-dewpoint-graph',
+                        figure=create_temperature_dewpoint_graph(df),
+                        config={'displayModeBar': False},
+                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
+                    )
+                ]),
+                dcc.Tab(label='Humidity', children=[
+                    dcc.Graph(
+                        id='humidity-graph',
+                        figure=create_humidity_graph(df),
+                        config={'displayModeBar': False},
+                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
+                    )
+                ]),
+                dcc.Tab(label='Wind', children=[
+                    dcc.Graph(
+                        id='wind-graph',
+                        figure=create_wind_graph(df),
+                        config={'displayModeBar': False},
+                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
+                    )
+                ]),
+                dcc.Tab(label='Rain', children=[
+                    dcc.Graph(
+                        id='rain-graph',
+                        figure=create_rain_graph(df),
+                        config={'displayModeBar': False},
+                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
+                    )
+                ]),
+                dcc.Tab(label='Pressure', children=[
+                    dcc.Graph(
+                        id='pressure-graph',
+                        figure=create_pressure_graph(df),
+                        config={'displayModeBar': False},
+                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
+                    )
+                ])
+            ]
         )
-])
+    ]
+)
 
 @app.callback(
     [Output('temperature-dewpoint-graph', 'figure'),
