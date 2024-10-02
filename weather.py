@@ -36,50 +36,44 @@ app.layout = html.Div(
             interval=5*60*1000,  # in milliseconds
             n_intervals=0),
 
-        html.H1("weather.kellykemnitz.com", style={'color': '#2B350E', 'textAlign': 'center'}),
+        html.H1("weather.kellykemnitz.com", style={'textAlign': 'center'}),
         
-        dcc.Tabs(
+        dbc.Tabs(
             id='tabs',
-            style={'backgroundColor': '#2B350E', 'color': '#000000'},
             children=[
-                dcc.Tab(label='Temperature & Dewpoint', children=[
+                dbc.Tab(label='Temperature & Dewpoint', tab_id='tab-1', children=[
                     dcc.Graph(
                         id='temperature-dewpoint-graph',
                         figure=create_temperature_dewpoint_graph(df),
                         config={'displayModeBar': False},
-                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
                     )
                 ]),
-                dcc.Tab(label='Humidity', children=[
+                dbc.Tab(label='Humidity', tab_id='tab-2', children=[
                     dcc.Graph(
                         id='humidity-graph',
                         figure=create_humidity_graph(df),
                         config={'displayModeBar': False},
-                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
                     )
                 ]),
-                dcc.Tab(label='Wind', children=[
+                dbc.Tab(label='Wind', tab_id='tab-3', children=[
                     dcc.Graph(
                         id='wind-graph',
                         figure=create_wind_graph(df),
                         config={'displayModeBar': False},
-                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
                     )
                 ]),
-                dcc.Tab(label='Rain', children=[
+                dbc.Tab(label='Rain', tab_id='tab-4', children=[
                     dcc.Graph(
                         id='rain-graph',
                         figure=create_rain_graph(df),
                         config={'displayModeBar': False},
-                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
                     )
                 ]),
-                dcc.Tab(label='Pressure', children=[
+                dbc.Tab(label='Pressure', tab_id='tab-5', children=[
                     dcc.Graph(
                         id='pressure-graph',
                         figure=create_pressure_graph(df),
                         config={'displayModeBar': False},
-                        style={'backgroundColor': '#2B350E', 'color': '#000000'}
                     )
                 ])
             ]
