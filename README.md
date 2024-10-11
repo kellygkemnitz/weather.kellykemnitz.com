@@ -18,7 +18,10 @@ Some of the key differences between this forked repo and the original include:
 ## Using this package
 Update settings.yaml:
 ```
-station: KKSWICHI504
+station: <change_me>
+freq: 5min
+attempts: 4
+wait_time: 5.0
 ```
 
 As long as BeautifulSoup is installed, the script should work fine after that. However, there are a few important points to note about processing the data once it's downloaded:
