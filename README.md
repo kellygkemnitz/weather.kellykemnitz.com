@@ -7,23 +7,21 @@ Some of the key differences between this forked repo and the original include:
 1. Removed command line arguments and ported configuration to settings.yaml
 2. Moved weather station scraper functions to class WeatherStation and constructing class using values provided in settings.yaml
 3. Created method within class to return settings
-4. Added method for returning scraped data in html file
-5. Migrated ability to export scraped data in CSV format to method
-6. Created plotly.graphs.py to generate Plotly graphs
-7. Created weather.py to run Dash app that presents Plotly graphs
-8. Created requirements.txt to specify all packages needed
+4. Removed requirements for selenium and chromedriver, as BeautifulSoup can handle the scraping on its own.
+5. Added method for returning scraped data in html file
+6. Migrated ability to export scraped data in CSV format to method
+7. Created plotly.graphs.py to generate Plotly graphs
+8. Created dash_app.py to run Dash app that presents Plotly graphs
+9. Created requirements.txt to specify all packages needed
 
 
 ## Using this package
-To run the script, the first thing to do is ensure that [ChromeDriver](https://chromedriver.chromium.org/) is installed. Note that you have to match the ChromeDriver version to whichever version of Chrome is installed on your machine. It's also possible to use something other than Chrome, for example [geckodriver](https://github.com/mozilla/geckodriver/releases) for Firefox or [safaridriver](https://webkit.org/blog/6900/webdriver-support-in-safari-10/) for Safari.
-
-Next, update settings.yaml:
+Update settings.yaml:
 ```
 station: KKSWICHI504
-chromedriver_path: "/usr/bin/chromedriver"
 ```
 
-As long as BeautifulSoup and Selenium are installed, the script should work fine after that. However, there are a few important points to note about processing the data once it's downloaded:
+As long as BeautifulSoup is installed, the script should work fine after that. However, there are a few important points to note about processing the data once it's downloaded:
 
 1. All data is listed in local time. So summer data is in daylight savings time and winter data is in standard time.
 2. Depending on the quality of the station, 
