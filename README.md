@@ -31,6 +31,7 @@ As long as BeautifulSoup is installed, the script should work fine after that. H
 3. All pressure data is reported as sea-level pressure. Depending on the weather station, it may be possible to back-calculate to absolute pressure; some manufacturers (e.g., Ambient Weather WS-2902) use a constant offset whereas others (e.g., Davis Vantage Pro2) perform a more complicated barometric pressure reduction using the station's 12-hr temperature and humidity history.
 
 ## Python dependencies 
+```
 APScheduler==3.10.4
 attrs==24.2.0
 beautifulsoup4==4.12.3
@@ -82,6 +83,7 @@ websocket-client==1.8.0
 Werkzeug==3.0.4
 wsproto==1.2.0
 zipp==3.20.2
+```
 
 ## Development
 Pull requests are welcome. Please let me know if you have suggestions for improvement.
