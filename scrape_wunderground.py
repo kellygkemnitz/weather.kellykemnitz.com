@@ -17,13 +17,11 @@ path to executable has to be updated below ("chromedriver_path").
 Zach Perzan, 2021-07-28
 Modified ever so slightly by Kelly Kemnitz, 9/12/2024"""
 
+from bs4 import BeautifulSoup as bs
 from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
-from bs4 import BeautifulSoup as BS
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+import requests
 import time
 import yaml
 
@@ -36,7 +34,6 @@ class WeatherStation:
         self.station = settings['station']
         self.date = datetime.today().strftime("%Y-%m-%d")
         self.freq = settings['freq']
-        self.chromedriver_path = settings['chromedriver_path']
         self.attempts = settings['attempts']
         self.wait_time = settings['wait_time']
 
@@ -54,36 +51,11 @@ class WeatherStation:
             'date': self.date,
             'freq': self.freq,
             'timespan': self.timespan,
-            'chromedriver_path': self.chromedriver_path,
             'attempts': self.attempts,
             'wait_time': self.wait_time
         }
 
         return settings
-    def render_page(self):
-        """Given a url, render it with chromedriver and return the html source
-
-        Parameters
-        ----------
-            url : str
-                url to render
-
-        Returns
-        -------
-            r :
-                rendered page source
-        """
-
-        chrome_service = Service(self.chromedriver_path)
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
-        driver.get(self.url)
-        rendered_page = driver.page_source
-        driver.quit()
-
-        return rendered_page
 
     def scrape_wunderground(self):
         """Given a PWS station ID and date, scrape that day's data from Weather
@@ -96,9 +68,8 @@ class WeatherStation:
                 and columns as the observed data
         """
 
-        r = self.render_page()
-        soup = BS(r, "html.parser")
-
+        response = requests.get(self.url)
+        soup = bs(response.content, "html.parser")
         container = soup.find('lib-history-table')
 
         # Check that lib-history-table is found
