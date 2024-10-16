@@ -6,10 +6,7 @@ COPY ./dash_app.py ./plotly_graphs.py ./scrape_wunderground.py /weather/
 COPY ./README.md /weather/
 COPY ./requirements.txt /weather/
 COPY ./settings.yaml /weather/
-COPY ./gunicorn_config.py /weather/
 
 RUN python3 -m pip install --no-cache -Ur requirements.txt
 
-EXPOSE 81
-
-CMD ["gunicorn", "--config", "gunicorn_config.py", "dash_app:server"]
+CMD CMD ["gunicorn", "-b", "0.0.0.0:8001", "-w", "4", "dash_app:app"]
