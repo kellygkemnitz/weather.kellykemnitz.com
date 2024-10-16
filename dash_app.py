@@ -23,7 +23,7 @@ def update_data():
     df = ws.scrape_wunderground()
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(update_data, 'interval', minutes=5)
+scheduler.add_job(update_data, 'interval', minutes=30)
 scheduler.start()
 
 update_data()
