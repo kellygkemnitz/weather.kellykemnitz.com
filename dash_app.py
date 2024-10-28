@@ -2,38 +2,24 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
-
-
-from apscheduler.schedulers.background import BackgroundScheduler
-
 import pandas as pd
-
 from scrape_wunderground import WeatherStation
 from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
 
-
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.ZEPHYR, dbc.icons.FONT_AWESOME])
 
-ws = WeatherStation()
+def fetch_data():
+    ws = WeatherStation()
+    return ws.scrape_wunderground()
 
-df = pd.DataFrame()
-
-def update_data():
-    global df
-    df = ws.scrape_wunderground()
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(update_data, 'interval', minutes=30)
-scheduler.start()
-
-update_data()
+df = fetch_data()
 
 app.layout = html.Div(
     style={'fontFamily': 'Arial, sans-serif', 'padding': '10px'},
     children=[
         dcc.Interval(
             id='interval-component',
-            interval=5*60*1000,  # in milliseconds
+            interval=30*60*1000,  # in milliseconds
             n_intervals=0),
 
         html.H1("weather.kellykemnitz.com", style={'textAlign': 'center'}),
@@ -90,6 +76,7 @@ app.layout = html.Div(
     [Input('interval-component', 'n_intervals')])
 
 def update_graphs(n):
+    df = fetch_data()
     return (create_temperature_dewpoint_graph(df),
             create_humidity_graph(df),
             create_wind_graph(df),
