@@ -14,6 +14,8 @@ app = dash.Dash(
     assets_folder='assets/css'
 )
 
+app.title = "https://weather.kellykemnitz.com"
+
 def fetch_data():
     ws = WeatherStation()
     return ws.scrape_wunderground()
