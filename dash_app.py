@@ -5,15 +5,47 @@ import dash_bootstrap_components as dbc
 from scrape_wunderground import WeatherStation
 from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME])
-
-app.title = "weather.kellykemnitz.com"
 
 def fetch_data():
     ws = WeatherStation()
     return ws.scrape_wunderground()
 
 df = fetch_data()
+
+app = dash.Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
+    external_scripts=[
+        "https://code.jquery.com/jquery-3.5.1.slim.min.js",
+        "https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js",
+        "https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js",
+        "https://use.fontawesome.com/releases/v6.3.0/js/all.js"
+    ])
+
+app.index_string = """
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="weather.kellykemnitz.com">
+    <meta name="author" content="Kelly Kemnitz">
+    {%metas%} <title>{%title%}</title>
+    {%favicon%}
+    {%css%}
+  </head>
+  <body>
+    {%app_entry%}
+    <footer>
+      {%config%}
+      {%scripts%}
+      {%renderer%}
+    </footer>
+  </body>
+</html>
+"""
+
+app.title = "weather.kellykemnitz.com"
 
 app.layout = dbc.Container([
     html.Div([
