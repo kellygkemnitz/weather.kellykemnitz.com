@@ -48,33 +48,38 @@ app.layout = dbc.Container([
                 dbc.Tab(label='Radar', tab_id='tab-6', children=[
                     dbc.Row([
                         dbc.Col(html.Div([
+                            html.H5("NWS"),
                             html.A([
                                 html.Img(src="https://radar.weather.gov/ridge/standard/KICT_loop.gif", className="image")
-                                ], href="https://radar.weather.gov/ridge/standard/KICT_loop.gif", target="_blank")
+                                ], href="https://radar.weather.gov/?settings=v1_eyJhZ2VuZGEiOnsiaWQiOiJsb2NhbCIsImNlbnRlciI6Wy05Ny40NDMsMzcuNjU0XSwibG9jYXRpb24iOm51bGwsInpvb20iOjguMTI2ODc1NzIxODAzODIsImZpbHRlciI6IldTUi04OEQiLCJsYXllciI6InNyX2JyZWYiLCJzdGF0aW9uIjoiS0lDVCJ9LCJhbmltYXRpbmciOmZhbHNlLCJiYXNlIjoic3RhbmRhcmQiLCJhcnRjYyI6ZmFsc2UsImNvdW50eSI6ZmFsc2UsImN3YSI6ZmFsc2UsInJmYyI6ZmFsc2UsInN0YXRlIjpmYWxzZSwibWVudSI6dHJ1ZSwic2hvcnRGdXNlZE9ubHkiOnRydWUsIm9wYWNpdHkiOnsiYWxlcnRzIjowLjgsImxvY2FsIjowLjYsImxvY2FsU3RhdGlvbnMiOjAuOCwibmF0aW9uYWwiOjAuNn19#/", target="_blank")
                         ]), className="col"),
                         dbc.Col(html.Div([
+                            html.H5("Weather Underground"),
                             html.A([
-                                html.Img(src="https://s.w-x.co/staticmaps/wu/wxtype/county_loc/sln/animate.png", className="image")
-                                ], href="https://s.w-x.co/staticmaps/wu/wxtype/county_loc/sln/animate.png", target="_blank")
+                                html.Img(src="https://s.w-x.co/staticmaps/wu/wu/wxtype1200_cur/ussln/animate.png", className="image")
+                                ], href="https://www.wunderground.com/radar/us/ks/salina", target="_blank")
                         ]), className="col"),
                         dbc.Col(html.Div([
+                            html.H5("Accuweather"),
                             html.A([
                                 html.Img(src="http://sirocco.accuweather.com/nx_mosaic_640x480_public/sir/inmasirks_.gif", className="image")
-                                ], href="http://sirocco.accuweather.com/nx_mosaic_640x480_public/sir/inmasirks_.gif", target="_blank")
+                                ], href="https://www.accuweather.com/en/us/kansas/weather-radar", target="_blank")
                         ]), className="col")
                     ], className="row")
                 ]),
                 dbc.Tab(label='Watches/Warnings', tab_id='tab-7', children=[
                     dbc.Row([
                         dbc.Col(html.Div([
+                            html.H5("SPC Mesoscale Discussions"),
                             html.A([
                                 html.Img(src="http://www.spc.noaa.gov/products/watch/validww.png", className="image")
-                            ], href="http://www.spc.noaa.gov/products/watch/validww.png", target="_blank")
+                            ], href="https://www.spc.noaa.gov/products/md/", target="_blank")
                         ]), className="col"),
                         dbc.Col(html.Div([
+                            html.H5("NWS ICT Watches, Warnings, & Advisories"),
                             html.A([
                                 html.Img(src="https://www.weather.gov/wwamap/png/ict.png", className="image")
-                            ], href="https://www.weather.gov/wwamap/png/ict.png", target="_blank")
+                            ], href="https://www.weather.gov/ict/", target="_blank")
                         ]), className="col")
                     ], className="row")
                 ]),
@@ -84,19 +89,19 @@ app.layout = dbc.Container([
                             html.H5("NOAA - Today's Forecast"),
                             html.A([
                                 html.Img(src="https://www.wpc.ncep.noaa.gov/noaa/noaad1.gif", className="image")
-                            ], href="https://www.wpc.ncep.noaa.gov/noaa/noaad1.gif", target="_blank")
+                            ], href="https://www.wpc.ncep.noaa.gov/national_forecast/natfcst.php", target="_blank")
                         ]), className="col"),
                         dbc.Col(html.Div([
                             html.H5("NOAA - Tomorrow's Forecast"),
                             html.A([
                                 html.Img(src="https://www.wpc.ncep.noaa.gov/noaa/noaad2.gif", className="image")
-                            ], href="https://www.wpc.ncep.noaa.gov/noaa/noaad2.gif", target="_blank")
+                            ], href="https://www.wpc.ncep.noaa.gov/national_forecast/natfcst.php", target="_blank")
                         ]), className="col"),
                         dbc.Col(html.Div([
                             html.H5("NOAA - Day 3 Forecast"),
                             html.A([
                                 html.Img(src="https://www.wpc.ncep.noaa.gov/noaa/noaad3.gif", className="image")
-                            ], href="https://www.wpc.ncep.noaa.gov/noaa/noaad3.gif", target="_blank")
+                            ], href="https://www.wpc.ncep.noaa.gov/national_forecast/natfcst.php", target="_blank")
                        ]), className="col"),
                     ], className="row"),
                     dbc.Row([
@@ -104,7 +109,7 @@ app.layout = dbc.Container([
                             html.H5("KSN Forecast"),
                             html.A([
                                 html.Img(src="https://media.psg.nexstardigital.net/ksnw/weather/images/wx_weekly_full.jpg", className="image")
-                            ], href="https://media.psg.nexstardigital.net/ksnw/weather/images/wx_weekly_full.jpg", target="_blank")
+                            ], href="https://www.ksn.com/weather/", target="_blank")
                         ]), className="col")
                     ], className="row")
                 ]),
@@ -114,19 +119,19 @@ app.layout = dbc.Container([
                             html.H5("SPC Day 1 Outlook"),
                             html.A([
                                 html.Img(src="https://www.spc.noaa.gov/products/outlook/day1otlk_1300.gif", className="image")
-                            ], href="https://www.spc.noaa.gov/products/outlook/day1otlk_1300.gif", target="_blank")
+                            ], href="https://www.spc.noaa.gov/products/outlook/", target="_blank")
                         ]), className="col"),
                         dbc.Col(html.Div([
                             html.H5("SPC Day 2 Outlook"),
                             html.A([
                                 html.Img(src="https://www.spc.noaa.gov/products/outlook/day2otlk_0600.gif", className="image")
-                            ], href="https://www.spc.noaa.gov/products/outlook/day2otlk_0600.gif", target="_blank")
+                            ], href="https://www.spc.noaa.gov/products/outlook/", target="_blank")
                         ]), className="col"),
                         dbc.Col(html.Div([
                             html.H5("SPC Day 3 Outlook"),
                             html.A([
                                 html.Img(src="https://www.spc.noaa.gov/products/outlook/day3otlk_0730.gif", className="image")
-                            ], href="https://www.spc.noaa.gov/products/outlook/day3otlk_0730.gif", target="_blank")
+                            ], href="https://www.spc.noaa.gov/products/outlook/", target="_blank")
                         ]), className="col")
                     ], className="row"),
                     dbc.Row([
@@ -134,7 +139,7 @@ app.layout = dbc.Container([
                             html.H5("ICT Hazardous Weather Outlook"),
                             html.A([
                                 html.Img(src="https://www.weather.gov/images/ict/ghwo/SevereThunderstormsDay1.jpg", className="image")
-                            ], href="https://www.weather.gov/images/ict/ghwo/SevereThunderstormsDay1.jpg", target="_blank")
+                            ], href="https://www.weather.gov/erh/ghwo?wfo=ict", target="_blank")
                         ]), className="col")
                     ], className="row")
                 ])
