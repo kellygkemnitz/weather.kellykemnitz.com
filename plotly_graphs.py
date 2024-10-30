@@ -1,6 +1,5 @@
 import plotly.graph_objects as go
 
-
 def create_temperature_dewpoint_graph(df):
     temperature_dewpoint_graph = go.Figure()
     temperature_dewpoint_graph.add_trace(go.Scatter(

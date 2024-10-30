@@ -2,7 +2,6 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
-import pandas as pd
 from scrape_wunderground import WeatherStation
 from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
 
