@@ -61,6 +61,29 @@ app.layout = html.Div(
                         figure=create_pressure_graph(df),
                         config={'displayModeBar': False},
                     )
+                ]),
+                dbc.Tab(label='Radar', tab_id='tab-6', children=[
+                    dbc.Row([
+                        dbc.Col(html.Div(html.Img(src="https://radar.weather.gov/ridge/standard/KICT_loop.gif"))),
+                        dbc.Col(html.Div(html.Img(src="http://sirocco.accuweather.com/nx_mosaic_640x480_public/sir/inmasirks_.gif")))
+                    ])
+                ]),
+                dbc.Tab(label='Watches/Warnings', tab_id='tab-7', children=[
+                    dbc.Row([
+                        dbc.Col(html.Div(html.Img(src="http://www.spc.noaa.gov/products/watch/validww.png")))
+                    ])
+                ]),
+                dbc.Tab(label='Forecast', tab_id='tab-8', children=[
+                    dbc.Row([
+                        html.Div(html.Img(src="https://media.psg.nexstardigital.net/ksnw/weather/images/wx_weekly_full.jpg"))
+                    ])
+                ]),
+                dbc.Tab(label='Outlook', tab_id='tab-9', children=[
+                    dbc.Row([
+                        html.Div(html.Img(src="https://www.spc.noaa.gov/products/outlook/day1otlk_1300.gif")),
+                        html.Div(html.Img(src="https://www.spc.noaa.gov/products/outlook/day2otlk_0600.gif")),
+                        html.Div(html.Img(src="https://www.spc.noaa.gov/products/outlook/day3otlk_0730.gif"))
+                    ])
                 ])
             ]
         )
