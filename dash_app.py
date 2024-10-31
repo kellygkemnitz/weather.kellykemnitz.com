@@ -14,31 +14,8 @@ df = fetch_data()
 
 app = dash.Dash(
     __name__,
-    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
+    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME]
 )
-
-app.index_string = """
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="weather.kellykemnitz.com">
-    <meta name="author" content="Kelly Kemnitz">
-    {%metas%} <title>{%title%}</title>
-    {%favicon%}
-    {%css%}
-  </head>
-  <body>
-    {%app_entry%}
-    <footer>
-      {%config%}
-      {%scripts%}
-      {%renderer%}
-    </footer>
-  </body>
-</html>
-"""
 
 app.title = "weather.kellykemnitz.com"
 
