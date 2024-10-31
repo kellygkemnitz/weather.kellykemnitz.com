@@ -2,6 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /weather
 
+COPY ./assets /weather/assets
 COPY ./dash_app.py ./plotly_graphs.py ./scrape_wunderground.py /weather/
 COPY ./README.md /weather/
 COPY ./requirements.txt /weather/
