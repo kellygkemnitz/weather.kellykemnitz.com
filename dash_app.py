@@ -15,12 +15,7 @@ df = fetch_data()
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
-    external_scripts=[
-        "https://code.jquery.com/jquery-3.5.1.slim.min.js",
-        "https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js",
-        "https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js",
-        "https://use.fontawesome.com/releases/v6.3.0/js/all.js"
-    ])
+)
 
 app.index_string = """
 <!DOCTYPE html>
