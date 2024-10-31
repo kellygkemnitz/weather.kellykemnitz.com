@@ -1,14 +1,20 @@
 FROM python:3.12-slim
 
-WORKDIR /weather
+WORKDIR /app
 
-COPY ./assets /weather/assets
-COPY ./dash_app.py ./plotly_graphs.py ./scrape_wunderground.py /weather/
-COPY ./README.md /weather/
-COPY ./requirements.txt /weather/
-COPY ./settings.yaml /weather/
+RUN python -m venv /opt/venv
 
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install --no-cache -Ur requirements.txt
+SHELL ["/bin/bash", "-c"]
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt .
+
+RUN pip install --upgrade pip
+RUN pip install --no-cache -Ur requirements.txt
+
+COPY assets .
+COPY dash_app.py plotly_graphs.py scrape_wunderground.py .
+COPY README.md .
+COPY settings.yaml .
 
 CMD ["gunicorn", "-b", "0.0.0.0:8001", "-w", "1", "-k", "gevent", "--worker-connections", "500", "--timeout", "120", "--keep-alive", "5", "--log-level", "info", "--access-logfile", "-", "dash_app:server"]
