@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache -Ur requirements.txt
 
-COPY assets .
+COPY assets /app/assets
 COPY dash_app.py plotly_graphs.py scrape_wunderground.py .
 COPY README.md .
 COPY settings.yaml .
