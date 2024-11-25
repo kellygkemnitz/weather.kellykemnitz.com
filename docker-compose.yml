@@ -1,11 +1,12 @@
 services:
-  weather:
+  weather.kellykemnitz.com:
     image: weather.kellykemnitz.com:latest
-    container_name: weather.kellykemnitz.com
+    container_name: weather
     networks:
       - kellyraspberrypi-local
     ports:
-      - "8001:8001"
+      - '8001:8001/tcp'
+    deploy:
     restart: unless-stopped
 
 networks:
