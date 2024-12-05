@@ -20,6 +20,4 @@ COPY README.md .
 COPY settings.yaml .
 COPY templates templates/
 
-EXPOSE 8001
-
 CMD ["python3", "app.py"]
