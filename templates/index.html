@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {%metas%}
+    <title>{%title%}</title>
+    {%favicon%}
+    {%css%}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .container {
+            padding: 0 15px;
+        }
+        .image {
+            width: 100%;
+            height: auto;
+        }
+        .row {
+            margin: 0 -15px;
+        }
+        .col {
+            padding: 0 15px;
+        }
+        @media (max-width: 576px) {
+            .container {
+                padding: 0 5px;
+            }
+            .row {
+                margin: 0 -5px;
+            }
+            .col {
+                padding: 0 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {%app_entry%}
+    </div>
+    <footer>
+        {%config%}
+        {%scripts%}
+        {%renderer%}
+    </footer>
+</body>
+</html>

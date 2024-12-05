@@ -4,27 +4,36 @@ from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 from scrape_wunderground import WeatherStation
 from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
-
-
-def fetch_data():
-    ws = WeatherStation()
-    return ws.scrape_wunderground()
-
-df = fetch_data()
+from flask_caching import Cache
 
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME]
 )
 
+with open('templates/index.html', 'r') as f:
+    app.index_string = f.read()
+
+cache = Cache(app.server, config={
+    'CACHE_TYPE': 'simple',
+    'CACHE_DEFAULT_TIMEOUT': 300
+})
+
+@cache.memoize()
+def fetch_data():
+    ws = WeatherStation()
+    return ws.scrape_wunderground()
+
 app.title = "weather.kellykemnitz.com"
+
+df = fetch_data()
 
 app.layout = dbc.Container([
     html.Div([
         html.Div([
             dcc.Interval(
                 id='interval-component',
-                interval=30*60*1000,  # in milliseconds
+                interval=5*60*1000,  # in milliseconds
                 n_intervals=0),
 
             dbc.Tabs(id='tabs', children=[
@@ -184,6 +193,4 @@ def update_graphs(n):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-server = app.server
+    app.run_server(debug=True)
