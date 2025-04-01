@@ -2,8 +2,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import pandas as pd
 import streamlit as st
 
-from scrape_wunderground import WeatherStation
-from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
+from modules.scrape_wunderground import WeatherStation
+from modules.plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
 
 ws = WeatherStation()
 df = pd.DataFrame()

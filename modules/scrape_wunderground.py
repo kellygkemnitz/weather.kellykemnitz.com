@@ -19,23 +19,24 @@ Modified ever so slightly by Kelly Kemnitz, 9/12/2024"""
 
 from bs4 import BeautifulSoup as bs
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
 import numpy as np
+import os
 import pandas as pd
 import requests
 import time
-import yaml
 
 
 class WeatherStation:
     def __init__(self):
-        with open('settings.yaml', 'r') as file:
-            settings = yaml.safe_load(file)
+        load_dotenv()
 
-        self.station = settings['station']
+        self.station = os.getenv('STATION')
         self.date = datetime.today().strftime("%Y-%m-%d")
-        self.freq = settings['freq']
-        self.attempts = settings['attempts']
-        self.wait_time = settings['wait_time']
+        self.freq = os.getenv('FREQ')
+        self.attempts = os.getenv('ATTEMPTS')
+        self.wait_time = os.getenv('WAIT_TIME')
 
         if self.freq == '5min':
             self.timespan = 'daily'

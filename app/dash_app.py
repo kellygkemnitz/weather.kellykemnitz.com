@@ -1,18 +1,25 @@
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import dash
 from dash import dcc, html
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
-from scrape_wunderground import WeatherStation
-from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
+
 from flask_caching import Cache
 from waitress import serve
+
+from modules.scrape_wunderground import WeatherStation
+from modules.plotly_graphs import WeatherGraphs
+
 
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME]
 )
 
-with open('templates/index.html', 'r') as f:
+with open('app/templates/index.html', 'r') as f:
     app.index_string = f.read()
 
 cache = Cache(app.server, config={
@@ -39,19 +46,19 @@ app.layout = dbc.Container([
 
             dbc.Tabs(id='tabs', children=[
                 dbc.Tab(label='Temperature & Dewpoint', tab_id='tab-1', children=[
-                    dcc.Graph(id='temperature-dewpoint-graph', figure=create_temperature_dewpoint_graph(df), config={'displayModeBar': True})
+                    dcc.Graph(id='temperature-dewpoint-graph', figure=WeatherGraphs.create_temperature_dewpoint_graph(df), config={'displayModeBar': True})
                 ]),
                 dbc.Tab(label='Humidity', tab_id='tab-2', children=[
-                    dcc.Graph(id='humidity-graph', figure=create_humidity_graph(df), config={'displayModeBar': True})
+                    dcc.Graph(id='humidity-graph', figure=WeatherGraphs.create_humidity_graph(df), config={'displayModeBar': True})
                 ]),
                 dbc.Tab(label='Wind', tab_id='tab-3', children=[
-                    dcc.Graph(id='wind-graph', figure=create_wind_graph(df), config={'displayModeBar': True})
+                    dcc.Graph(id='wind-graph', figure=WeatherGraphs.create_wind_graph(df), config={'displayModeBar': True})
                 ]),
                 dbc.Tab(label='Rain', tab_id='tab-4', children=[
-                    dcc.Graph(id='rain-graph', figure=create_rain_graph(df), config={'displayModeBar': True})
+                    dcc.Graph(id='rain-graph', figure=WeatherGraphs.create_rain_graph(df), config={'displayModeBar': True})
                 ]),
                 dbc.Tab(label='Pressure', tab_id='tab-5', children=[
-                    dcc.Graph(id='pressure-graph', figure=create_pressure_graph(df), config={'displayModeBar': True})
+                    dcc.Graph(id='pressure-graph', figure=WeatherGraphs.create_pressure_graph(df), config={'displayModeBar': True})
                 ]),
                 dbc.Tab(label='Radar', tab_id='tab-6', children=[
                     dbc.Row([
@@ -186,12 +193,12 @@ app.layout = dbc.Container([
 
 def update_graphs(n):
     df = fetch_data()
-    return (create_temperature_dewpoint_graph(df),
-            create_humidity_graph(df),
-            create_wind_graph(df),
-            create_rain_graph(df),
-            create_pressure_graph(df))
+    return (WeatherGraphs.create_temperature_dewpoint_graph(df),
+            WeatherGraphs.create_humidity_graph(df),
+            WeatherGraphs.create_wind_graph(df),
+            WeatherGraphs.create_rain_graph(df),
+            WeatherGraphs.create_pressure_graph(df))
 
 
 if __name__ == '__main__':
-    serve(app.server, host='0.0.0.0', port=8001)
+    serve(app.server, host='0.0.0.0', port=8050, threads=4)
