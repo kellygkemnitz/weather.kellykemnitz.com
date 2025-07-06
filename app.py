@@ -5,7 +5,6 @@ import dash_bootstrap_components as dbc
 from scrape_wunderground import WeatherStation
 from plotly_graphs import create_temperature_dewpoint_graph, create_humidity_graph, create_wind_graph, create_rain_graph, create_pressure_graph
 from flask_caching import Cache
-from waitress import serve
 
 app = dash.Dash(
     __name__,
@@ -191,7 +190,3 @@ def update_graphs(n):
             create_wind_graph(df),
             create_rain_graph(df),
             create_pressure_graph(df))
-
-
-if __name__ == '__main__':
-    serve(app.server, host='0.0.0.0', port=8001)
