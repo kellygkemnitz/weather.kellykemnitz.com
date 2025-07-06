@@ -1,5 +1,4 @@
-FROM python:3.9.21-slim-bookworm
-
+FROM python:3.12-slim
 WORKDIR /app
 
 RUN python3 -m venv /opt/venv
@@ -9,15 +8,15 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
 
-#RUN pip install --upgrade pip
+RUN pip install --upgrade pip
 RUN pip install --no-cache -Ur requirements.txt
 
 COPY assets /app/assets
-COPY dash_app.py app.py
+COPY app.py .
 COPY plotly_graphs.py .
 COPY scrape_wunderground.py .
 COPY README.md .
 COPY settings.yaml .
 COPY templates templates/
 
-CMD ["python3", "app.py"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8001", "app:app"]
