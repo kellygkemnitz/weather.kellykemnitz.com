@@ -12,6 +12,8 @@ class Graphs:
 
     def _common_layout(self, fig, y_title: str):
         fig.update_layout(
+            autosize=True,
+            margin=dict(l=40, r=40, t=40, b=40),
             hovermode='x',
             xaxis=dict(showgrid=False),
             yaxis=dict(showgrid=False, title=y_title),

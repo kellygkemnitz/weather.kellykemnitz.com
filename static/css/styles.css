@@ -97,4 +97,14 @@ body {
     flex-wrap: wrap;
     margin-right: -1.5rem;
     margin-left: -1.5rem;
-  }
+}
+
+.tab-content
+
+.tab-pane {
+    width: 100% !important
+}
+
+.tab-pane .plotly-graph-div {
+    width: 100% !important;
+}
