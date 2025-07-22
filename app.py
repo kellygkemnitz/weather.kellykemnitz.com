@@ -68,8 +68,3 @@ def index():
         rain = graphs['rain'],
         pressure = graphs['pressure'],
     )
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    logging.info("Starting server...")
-    app.run(host='0.0.0.0', port=8050, debug=True)

@@ -1,4 +1,4 @@
-FROM python:3.9.21-slim-bookworm
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -15,6 +15,8 @@ RUN pip install --no-cache -Ur requirements.txt
 COPY modules modules/ 
 COPY static static/
 COPY templates templates/
-COPY . /
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "app:app"]
+COPY app.py .
+COPY .env . 
+
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8001", "app:app"]
