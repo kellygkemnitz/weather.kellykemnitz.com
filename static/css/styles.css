@@ -57,7 +57,7 @@ body {
 }
 
 .container {
-    width: 100%;
+    max-width: 60%;
     padding-right: 1.5rem;
     padding-left: 1.5rem;
     margin-right: auto;
@@ -72,10 +72,22 @@ body {
 }
 
 .image {
+    max-width: 100%;
     width: 100%;
     height: auto;
     display: block;
     margin: 0 auto;
+}
+
+.nav-tabs {
+  display: flex;                /* ensure flex container */
+  flex-wrap: nowrap !important; /* no wrapping onto new lines */
+  overflow-x: auto;             /* horizontal scroll if too many tabs */
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-tabs .nav-item {
+    flex: 0 0 auto;
 }
 
 .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
@@ -99,12 +111,12 @@ body {
     margin-left: -1.5rem;
 }
 
-.tab-content
+.tab-content,
 
 .tab-pane {
-    width: 100% !important
+    width: 100% !important;
 }
 
-.tab-pane .plotly-graph-div {
+.plotly-graph-div {
     width: 100% !important;
 }
