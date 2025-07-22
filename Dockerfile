@@ -12,9 +12,9 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache -Ur requirements.txt
 
-COPY modules /app/
-COPY static /app/
-COPY templates /app/
-COPY . /app/
+COPY modules modules/ 
+COPY static static/
+COPY templates templates/
+COPY . /
 
-CMD ["python3", "app.py"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "app:app"]
