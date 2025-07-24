@@ -82,8 +82,6 @@ body {
 .nav-tabs {
   display: flex;                /* ensure flex container */
   flex-wrap: nowrap !important; /* no wrapping onto new lines */
-  overflow-x: auto;             /* horizontal scroll if too many tabs */
-  -webkit-overflow-scrolling: touch;
 }
 
 .nav-tabs .nav-item {
@@ -104,6 +102,11 @@ body {
     color: var(--white);
 }
 
+.plotly-graph-div {
+  width: 100% !important;
+  height: auto  !important;
+}
+
 .row {
     display: flex;
     flex-wrap: wrap;
@@ -114,7 +117,7 @@ body {
 .tab-content,
 
 .tab-pane {
-    width: 100% !important;
+    max-width: 100% !important;
 }
 
 .plotly-graph-div {

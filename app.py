@@ -56,7 +56,11 @@ def index():
     figs = graphs.create_graphs(df)
 
     graphs = {
-        name: fig.to_html(full_html=False, include_plotlyjs=False)
+        name: fig.to_html(
+            full_html=False,
+            include_plotlyjs=False,
+            config={'responsive': True}
+        )
         for name, fig in figs.items()
     }
 
