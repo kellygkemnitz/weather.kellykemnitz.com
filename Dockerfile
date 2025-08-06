@@ -2,21 +2,22 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN python3 -m venv /opt/venv
+RUN python3 -m venv /opt/venv \
+ && /opt/venv/bin/pip install --upgrade pip
 
-SHELL ["/bin/bash", "-c"]
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install --no-cache -Ur requirements.txt
+RUN pip install --no-cache -r requirements.txt
 
-COPY modules modules/ 
-COPY static static/
-COPY templates templates/
-
+COPY modules/ modules/
+COPY static/ static/
+COPY templates/ templates/
+COPY .env .
 COPY app.py .
-COPY .env . 
+COPY scraper.py .
+
+EXPOSE 8081
 
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8001", "app:app"]
