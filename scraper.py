@@ -1,10 +1,6 @@
 import os
 
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
-
-from flask import Flask, send_from_directory, render_template_string
-from flask_caching import Cache
 
 from modules.wunderground import Wunderground
 from modules.plotly_graphs import Graphs
