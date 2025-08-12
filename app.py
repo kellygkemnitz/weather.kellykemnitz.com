@@ -67,6 +67,7 @@ def index():
 
     return render_template(
         'index.html',
+        station=station,
         temperature_dewpoint = render_graphs['temperature_dewpoint'],
         humidity = render_graphs['humidity'],
         wind = render_graphs['wind'],
