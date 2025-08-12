@@ -1,3 +1,4 @@
+import pandas as pd
 import plotly.graph_objects as go
 
 class Graphs:
@@ -12,11 +13,13 @@ class Graphs:
 
     def _common_layout(self, fig, y_title: str):
         fig.update_layout(
-            autosize=True,
+            width=960,
+            height=350,
             margin=dict(l=20, r=20, t=30, b=20),
             hovermode='x',
             xaxis=dict(showgrid=False),
             yaxis=dict(showgrid=False, title=y_title),
+            
             legend=dict(
                 orientation="h",
                 yanchor="bottom",

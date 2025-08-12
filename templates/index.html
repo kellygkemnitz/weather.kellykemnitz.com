@@ -14,7 +14,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>weather.kellykemnitz.com</h1>
+    <h1>weather.kellykemnitz.com - {{ station }}</h1>
     
     <!-- Nav tabs -->
     <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -51,27 +51,37 @@
     <div class="tab-content">
         <!-- Temperature & Dewpoint -->
         <div class="tab-pane fade show active" id="temperature-dewpoint" role="tabpanel">
-            {{ temperature_dewpoint | safe }}
+            <div class="graph-container">
+                {{ temperature_dewpoint | safe }}
+            </div>
         </div>
 
         <!-- Humidity -->
         <div class="tab-pane fade" id="humidity" role="tabpanel">
-            {{ humidity | safe }}
+            <div class="graph-container">
+                {{ humidity | safe }}
+            </div>
         </div>
 
         <!-- Wind -->
         <div class="tab-pane fade" id="wind" role="tabpanel">
-            {{ wind | safe }}
+            <div class="graph-container">
+                {{ wind | safe }}
+            </div>
         </div>
 
         <!-- Rain -->
         <div class="tab-pane fade" id="rain" role="tabpanel">
-            {{ rain | safe }}
+            <div class="graph-container">
+                {{ rain | safe }}
+            </div>
         </div>
 
         <!-- Pressure -->
         <div class="tab-pane fade" id="pressure" role="tabpanel">
-            {{ pressure | safe }}
+            <div class="graph-container">
+                {{ pressure | safe }}
+            </div>
         </div>
 
         <!-- Radar -->
