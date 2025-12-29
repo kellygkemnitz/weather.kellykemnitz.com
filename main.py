@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from modules.wunderground import Wunderground
+from modules.scraper import Scraper
 from modules.plotly_graphs import Graphs
 
 if __name__ == "__main__":
@@ -13,8 +13,8 @@ if __name__ == "__main__":
     wait_time = os.getenv('WAIT_TIME')
     freq = os.getenv('FREQ')
 
-    wunderground = Wunderground(station, attempts, wait_time, freq)
-    df = wunderground.scrape()  # This should return a DataFrame
+    scraper = Scraper(station, attempts, wait_time, freq)
+    df = scraper.scrape()  # This should return a DataFrame
 
     graphs = Graphs()
     all_graphs = graphs.create_graphs(df)

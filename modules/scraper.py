@@ -27,7 +27,7 @@ import requests
 import time
 
 
-class Wunderground:
+class Scraper:
     def __init__(self, station, attempts, wait_time, freq):
         self.station = station
         self.attempts = attempts

@@ -9,7 +9,7 @@ from flask_caching import Cache
 import plotly.io as pio
 
 from dotenv import load_dotenv
-from modules.wunderground import Wunderground
+from modules.scraper import Scraper
 from modules.plotly_graphs import Graphs
 
 load_dotenv()
@@ -28,14 +28,14 @@ cache = Cache(app, config={
 @cache.memoize()
 def fetch_data():
     try:
-        wunderground = Wunderground(
+        scraper = Scraper(
             station=station,
             attempts=attempts,
             wait_time=wait_time,
             freq=freq
         )
         
-        df = wunderground.scrape()
+        df = scraper.scrape()
         
         if df is None or df.empty:
             raise ValueError("Empty DataFrame returned from scrape.")
