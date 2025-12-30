@@ -1,6 +1,7 @@
+import logging
 import requests
 
-class APIClient:
+class WundergroundClient:
     def __init__(self, api_key: str, station_id: str):
         self.api_key = api_key
         self.station_id = station_id
@@ -13,15 +14,16 @@ class APIClient:
             'units': 'e',
             'apiKey': self.api_key
         }
-        
-        response = requests.get(self.base_url, params=params)
-        
-        if response.status_code != 200:
-            raise Exception(f"API request failed with status code {response.status_code}")
-        
-        data = response.json()
-        
-        # Process the JSON data into a DataFrame
-        current_observations = data.get('observations', [])
 
+        try:
+            response = requests.get(self.base_url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+            current_observations = data.get('observations', [])
+
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error fetching data from Wunderground API: {e}")
+            raise
+        
         return current_observations

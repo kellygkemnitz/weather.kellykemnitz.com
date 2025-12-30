@@ -35,12 +35,12 @@ class InfluxDBWriter:
                         .field("uv", float(obs.get("uv", 0.0)))
                         .field("windDirection", int(obs.get("winddir", 0)))
 
-                        .field("dewpt", int(obs.get("imperial", {}).get("dewpt", 0)))
+                        .field("dewpoint", int(obs.get("imperial", {}).get("dewpt", 0)))
                         .field("heatIndex", int(obs.get("imperial", {}).get("heatIndex", 0)))
                         .field("precipitationRate", float(obs.get("imperial", {}).get("precipRate", 0.0)))
                         .field("precipitationTotal", float(obs.get("imperial", {}).get("precipTotal", 0.0)))
                         .field("pressure", float(obs.get("imperial", {}).get("pressure", 0.0)))
-                        .field("temp", int(obs.get("imperial", {}).get("temp", 0)))
+                        .field("temperature", int(obs.get("imperial", {}).get("temp", 0)))
                         .field("windChill", int(obs.get("imperial", {}).get("windChill", 0)))
                         .field("windSpeed", int(obs.get("imperial", {}).get("windSpeed", 0)))
 
@@ -55,4 +55,29 @@ class InfluxDBWriter:
             
             except Exception as e:
                 logging.error(f"Error writing to InfluxDB: {e}")
+                raise
+
+    def query_observerations(self, start: str, stop: str):
+        """Query weather observations from InfluxDB within a time range"""
+        
+        with InfluxDBClient(url=self.url, token=self.token, org=self.org) as client:
+            query_api = client.query_api()
+            query = f'''
+            from(bucket: "{self.bucket}")
+              |> range(start: {start}, stop: {stop})
+              |> filter(fn: (r) => r._measurement == "weather_observations")
+            '''
+            try:
+                result = query_api.query(org=self.org, query=query)
+                records = []
+                
+                for table in result:
+                    for record in table.records:
+                        records.append(record.values)
+                
+                logging.info(f"Queried {len(records)} observations from InfluxDB")
+                return records
+            
+            except Exception as e:
+                logging.error(f"Error querying InfluxDB: {e}")
                 raise

@@ -3,7 +3,7 @@ import os
 import sys
 
 from dotenv import load_dotenv
-from modules.api_client import APIClient
+from modules.wunderground_client import WundergroundClient
 from modules.influxdb_client import InfluxDBWriter
 
 
@@ -17,18 +17,18 @@ if __name__ == "__main__":
 
     try:
         # Fetch weather data
-        client = APIClient(wunderground_api_key, wunderground_station_id)
+        client = WundergroundClient(wunderground_api_key, wunderground_station_id)
         observations = client.fetch_data()
 
         # Write to InfluxDB
-        influx_client = InfluxDBWriter(
+        influxdb_client = InfluxDBWriter(
             url=influxdb_url,
             token=influxdb_token,
             org=os.getenv('INFLUXDB_ORG'),
             bucket=os.getenv('INFLUXDB_BUCKET')
         )
 
-        influx_client.write_observations(observations)
+        influxdb_client.write_observations(observations)
         
     except Exception as e:
         logging.error(f"Error in weather data pipeline: {e}")

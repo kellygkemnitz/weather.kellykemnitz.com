@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>InfluxDB Chart.js Example</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+<body>
+  <h1>Temperature Last Hour</h1>
+  <canvas id="tempChart" width="800" height="400"></canvas>
+
+  <script>
+    async function fetchData() {
+      try {
+        const response = await fetch("/api/temperature");
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        return { timestamps: [], values: [] };
+      }
+    }
+
+    async function renderChart() {
+      try {
+        const data = await fetchData();
+        
+        if (data.timestamps.length === 0) {
+          document.getElementById('tempChart').style.display = 'none';
+          document.body.insertAdjacentHTML('beforeend', '<p>No temperature data available for the last hour.</p>');
+          return;
+        }
+
+        const ctx = document.getElementById('tempChart').getContext('2d');
+
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.timestamps,
+            datasets: [{
+              label: 'Temperature (°F)',
+              data: data.values,
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.1)',
+              fill: true,
+              tension: 0.1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  tooltipFormat: 'MMM dd, yyyy HH:mm',
+                  displayFormats: {
+                    minute: 'HH:mm',
+                    hour: 'HH:mm'
+                  }
+                },
+                title: {
+                  display: true,
+                  text: 'Time'
+                }
+              },
+              y: {
+                beginAtZero: false,
+                title: {
+                  display: true,
+                  text: 'Temperature (°F)'
+                }
+              }
+            },
+            plugins: {
+              title: {
+                display: true,
+                text: 'Temperature Over Last Hour'
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error rendering chart:', error);
+        document.body.insertAdjacentHTML('beforeend', '<p>Error loading temperature chart.</p>');
+      }
+    }
+
+    renderChart();
+  </script>
+</body>
+</html>
