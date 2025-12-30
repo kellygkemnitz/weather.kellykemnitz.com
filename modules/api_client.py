@@ -1,4 +1,3 @@
-import pandas as pd
 import requests
 
 class APIClient:
@@ -23,24 +22,6 @@ class APIClient:
         data = response.json()
         
         # Process the JSON data into a DataFrame
-        observations = data.get('observations', [])
-        df = pd.DataFrame(observations)
+        current_observations = data.get('observations', [])
 
-        # Convert timestamp to datetime
-        df = self._convert_to_datetime(df.copy())
-        
-        # Automatically normalize the data
-        df = self._normalize_data(df.copy())
-        
-        return df
-    
-    def _convert_to_datetime(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['timestamp'] = pd.to_datetime(df['obsTimeLocal'])
-        
-        return df
-
-    def _normalize_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        imperial_df = pd.json_normalize(df['imperial'])
-        df = df.join(imperial_df)
-
-        return df
+        return current_observations

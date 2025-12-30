@@ -1,18 +1,35 @@
+import logging
 import os
 
 from dotenv import load_dotenv
-
 from modules.api_client import APIClient
+from modules.influxdb_client import InfluxDBWriter
 
 if __name__ == "__main__":
     load_dotenv()
 
-    api_key = os.getenv('API_KEY')
-    station_id = os.getenv('STATION_ID')
+    wunderground_api_key = os.getenv('WUNDERGROUND_API_KEY')
+    wunderground_station_id = os.getenv('WUNDERGROUND_STATION_ID')
     influxdb_url = os.getenv('INFLUXDB_URL')
     influxdb_token = os.getenv('INFLUXDB_TOKEN')
 
-    client = APIClient(api_key, station_id)
-    df = client.fetch_data()
+    try:
+        # Fetch weather data
+        client = APIClient(wunderground_api_key, wunderground_station_id)
+        observations = client.fetch_data()
+
+        # Write to InfluxDB
+        influx_client = InfluxDBWriter(
+            url=influxdb_url,
+            token=influxdb_token,
+            org=os.getenv('INFLUXDB_ORG'),
+            bucket=os.getenv('INFLUXDB_BUCKET')
+        )
+
+        influx_client.write_observations(observations)
+        
+    except Exception as e:
+        logging.error(f"Error in weather data pipeline: {e}")
+        exit(1)
 
     exit(0)
