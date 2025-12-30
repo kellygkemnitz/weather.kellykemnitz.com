@@ -8,6 +8,7 @@ from modules.influxdb_client import InfluxDBWriter
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     load_dotenv()
 
     wunderground_api_key = os.getenv('WUNDERGROUND_API_KEY')
@@ -34,5 +35,4 @@ if __name__ == "__main__":
         logging.error(f"Error in weather data pipeline: {e}")
         sys.exit(1)
     
-    # Clean exit
     sys.exit(0)

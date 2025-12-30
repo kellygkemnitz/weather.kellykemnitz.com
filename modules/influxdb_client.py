@@ -76,6 +76,7 @@ class InfluxDBWriter:
                         records.append(record.values)
                 
                 logging.info(f"Queried {len(records)} observations from InfluxDB")
+                
                 return records
             
             except Exception as e:
