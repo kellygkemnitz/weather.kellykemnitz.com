@@ -1,9 +1,11 @@
 import logging
 import os
+import sys
 
 from dotenv import load_dotenv
 from modules.api_client import APIClient
 from modules.influxdb_client import InfluxDBWriter
+
 
 if __name__ == "__main__":
     load_dotenv()
@@ -30,6 +32,7 @@ if __name__ == "__main__":
         
     except Exception as e:
         logging.error(f"Error in weather data pipeline: {e}")
-        exit(1)
-
-    exit(0)
+        sys.exit(1)
+    
+    # Clean exit
+    sys.exit(0)
