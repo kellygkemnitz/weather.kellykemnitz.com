@@ -1,0 +1,20 @@
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: /home/admkellyk11/data/grafana
+        target: /var/lib/grafana
+    secrets:
+      - grafana-admin-password
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: /run/secrets/grafana-admin-password
+      GF_PATHS_DATA: /var/lib/grafana
+      GF_PATHS_PLUGINS: /var/lib/grafana/plugins
+    restart: unless-stopped
+secrets:
+  grafana-admin-password:
+    file: ~/.env.grafana-admin-password

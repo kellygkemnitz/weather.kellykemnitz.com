@@ -1,29 +1,38 @@
+import logging
 import os
+import sys
 
 from dotenv import load_dotenv
+from modules.wunderground_client import WundergroundClient
+from modules.influxdb_client import InfluxDBWriter
 
-from modules.scraper import Scraper
-from modules.plotly_graphs import Graphs
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     load_dotenv()
 
-    station = os.getenv('STATION')
-    attempts = int(os.getenv('ATTEMPTS'))
-    wait_time = os.getenv('WAIT_TIME')
-    freq = os.getenv('FREQ')
+    wunderground_api_key = os.getenv('WUNDERGROUND_API_KEY')
+    wunderground_station_id = os.getenv('WUNDERGROUND_STATION_ID')
+    influxdb_url = os.getenv('INFLUXDB_URL')
+    influxdb_token = os.getenv('INFLUXDB_TOKEN')
 
-    scraper = Scraper(station, attempts, wait_time, freq)
-    df = scraper.scrape()  # This should return a DataFrame
+    try:
+        # Fetch weather data
+        client = WundergroundClient(wunderground_api_key, wunderground_station_id)
+        observations = client.fetch_data()
 
-    graphs = Graphs()
-    all_graphs = graphs.create_graphs(df)
+        # Write to InfluxDB
+        influxdb_client = InfluxDBWriter(
+            url=influxdb_url,
+            token=influxdb_token,
+            org=os.getenv('INFLUXDB_ORG'),
+            bucket=os.getenv('INFLUXDB_BUCKET')
+        )
 
-    temperature_dewpoint_graph = all_graphs['temperature_dewpoint']
-    humidity_graph = all_graphs['humidity']
-    wind_graph = all_graphs['wind']
-    rain_graph = all_graphs['rain']
-    pressure_graph = all_graphs['pressure']
-
-    # Save the graph as HTML or display it (not implemented here)
-    # temperature_dewpoint_graph.write_html("temperature_dewpoint_graph.html")
+        influxdb_client.write_observations(observations)
+        
+    except Exception as e:
+        logging.error(f"Error in weather data pipeline: {e}")
+        sys.exit(1)
+    
+    sys.exit(0)

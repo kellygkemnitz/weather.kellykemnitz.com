@@ -12,7 +12,7 @@ class InfluxDBWriter:
         self.bucket = bucket
 
     def write_observations(self, observations):
-        """Write weather observations to InfluxDB"""
+        """Write current weather observations to InfluxDB"""
         
         # Use context manager to ensure proper cleanup
         with InfluxDBClient(url=self.url, token=self.token, org=self.org) as client:
@@ -22,7 +22,7 @@ class InfluxDBWriter:
                 for obs in observations:
                     # Create point with proper field mapping based on normalized data
                     point = (
-                        Point("weather_observations")
+                        Point("current_observations")
                         .tag("stationID", str(obs.get("stationID", "unknown")))
                         .tag("country", str(obs.get("country", "unknown")))
                         .tag("city", str(obs.get("neighborhood", "unknown")))

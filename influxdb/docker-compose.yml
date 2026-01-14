@@ -1,0 +1,26 @@
+# compose.yaml
+services:
+  influxdb3:
+    image: influxdb:latest
+    name: influxdb
+    ports:
+      - 8086:8086
+    secrets:
+      #- influxdb-admin-username
+      - influxdb-admin-password
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+        #DOCKER_INFLUXDB_INIT_USERNAME_FILE: /run/secrets/influxdb-admin-username
+      DOCKER_INFLUXDB_INIT_PASSWORD_FILE: /run/secrets/influxdb-admin-password
+      # DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: /run/secrets/influxdb-admin-token
+      DOCKER_INFLUXDB_INIT_ORG: kellykemnitz.com
+      DOCKER_INFLUXDB_INIT_BUCKET: weather
+    volumes:
+      - /home/admkellyk11/data/influxdb/data:/var/lib/influxdb
+      - /home/admkellyk11/data/influxdb/config:/etc/influxdb
+
+  secrets:
+    #influxdb-admin-username:
+    #  external: true
+    influxdb-admin-password:
+      external: true
