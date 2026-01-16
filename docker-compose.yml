@@ -35,6 +35,11 @@ services:
     volumes:
       - "${GRAFANA_DATA}:/var/lib/grafana"
 
+  weather:
+    build: .
+    container_name: weather:latest
+    restart: always
+
 networks:
   weather:
     external: true
