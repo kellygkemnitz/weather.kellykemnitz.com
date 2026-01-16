@@ -1,14 +1,23 @@
 services:
-  weather.kellykemnitz.com:
-    image: weather.kellykemnitz.com:latest
-    container_name: weather
+  influxdb:
+    image: influxdb:2
+    pull_policy: always
+    container_name: influxdb
     networks:
-      - kellyraspberrypi-local
+      - weather
     ports:
-      - '8001:8001/tcp'
-    deploy:
-    restart: unless-stopped
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: "${INFLUXDB_ADMIN_USERNAME}"
+      DOCKER_INFLUXDB_INIT_PASSWORD: "${INFLUXDB_ADMIN_PASSWORD}"
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "${INFLUXDB_ADMIN_TOKEN}"
+      DOCKER_INFLUXDB_INIT_ORG: "${INFLUXDB_ORG}"
+      DOCKER_INFLUXDB_INIT_BUCKET: "${INFLUXDB_DEFAULT_BUCKET}"
+    volumes:
+      - "${INFLUXDB_DATA}:/var/lib/influxdb2"
+      - "${INFLUXDB_CONFIG}:/etc/influxdb2"
 
 networks:
-  kellyraspberrypi-local:
+  weather:
     external: true

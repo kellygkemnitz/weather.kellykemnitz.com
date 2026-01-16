@@ -2,10 +2,10 @@ import logging
 import requests
 
 class WundergroundClient:
-    def __init__(self, api_key: str, station_id: str):
+    def __init__(self, url, api_key: str, station_id: str):
+        self.url = url
         self.api_key = api_key
         self.station_id = station_id
-        self.base_url = "https://api.weather.com/v2/pws/observations/current"
 
     def fetch_data(self):
         params = {
@@ -16,7 +16,7 @@ class WundergroundClient:
         }
 
         try:
-            response = requests.get(self.base_url, params=params)
+            response = requests.get(self.url, params=params)
             response.raise_for_status()
 
             data = response.json()

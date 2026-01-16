@@ -11,14 +11,15 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     load_dotenv()
 
+    wunderground_url = os.getenv('WUNDERGROUND_URL')
     wunderground_api_key = os.getenv('WUNDERGROUND_API_KEY')
     wunderground_station_id = os.getenv('WUNDERGROUND_STATION_ID')
     influxdb_url = os.getenv('INFLUXDB_URL')
-    influxdb_token = os.getenv('INFLUXDB_TOKEN')
+    influxdb_token = os.getenv('INFLUXDB_WEATHER_TOKEN')
 
     try:
         # Fetch weather data
-        client = WundergroundClient(wunderground_api_key, wunderground_station_id)
+        client = WundergroundClient(wunderground_url, wunderground_api_key, wunderground_station_id)
         observations = client.fetch_data()
 
         # Write to InfluxDB
@@ -26,7 +27,7 @@ if __name__ == "__main__":
             url=influxdb_url,
             token=influxdb_token,
             org=os.getenv('INFLUXDB_ORG'),
-            bucket=os.getenv('INFLUXDB_BUCKET')
+            bucket=os.getenv('INFLUXDB_WEATHER_BUCKET')
         )
 
         influxdb_client.write_observations(observations)
