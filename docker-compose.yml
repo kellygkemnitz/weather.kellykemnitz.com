@@ -22,6 +22,7 @@ services:
     image: grafana/grafana:latest
     pull_policy: always
     container_name: grafana
+    user: "${UID}"
     networks:
       - weather
     depends_on:
@@ -36,8 +37,12 @@ services:
       - "${GRAFANA_DATA}:/var/lib/grafana"
 
   weather:
-    build: .
-    container_name: weather:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weather_new
+    networks:
+      - weather
     restart: always
 
 networks:
