@@ -1,16 +1,19 @@
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y cron
+# Install cron and any system deps your Python packages might need
+RUN apk add --no-cache curl bash busybox-suid
 
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy your app
 COPY . .
 
-RUN echo "*/5 * * * * python /app/main.py >> /var/log/cron.log 2>&1" > /etc/cron.d/mycron
+# Add cron job
+RUN echo "*/5 * * * * python /app/main.py >> /var/log/cron.log 2>&1" > /etc/crontabs/root
 
-RUN chmod 0644 /etc/cron.d/mycron
-
-CMD ["cron", "-f"]
+# Run cron in foreground
+CMD ["crond", "-f", "-l", "2"]
