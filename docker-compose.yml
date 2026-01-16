@@ -40,6 +40,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: weather:latest
     container_name: weather_new
     networks:
       - weather
