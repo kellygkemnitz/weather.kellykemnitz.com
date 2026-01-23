@@ -20,4 +20,4 @@ COPY scraper.py .
 
 EXPOSE 8081
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8001", "app:app"]
+CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:8001", "app:app"]
