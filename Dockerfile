@@ -14,7 +14,6 @@ RUN pip install --no-cache -r requirements.txt
 COPY modules/ modules/
 COPY static/ static/
 COPY templates/ templates/
-COPY .env .
 COPY app.py .
 COPY scraper.py .
 
