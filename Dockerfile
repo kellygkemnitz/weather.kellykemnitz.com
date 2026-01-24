@@ -5,7 +5,16 @@ WORKDIR /app
 RUN python3 -m venv /opt/venv \
  && /opt/venv/bin/pip install --upgrade pip
 
+ARG STATION
+ARG FREQ
+ARG ATTEMPTS
+ARG WAIT_TIME
+
 ENV PATH="/opt/venv/bin:$PATH"
+ENV STATION=$STATION
+ENV FREQ=$FREQ
+ENV ATTEMPTS=$ATTEMPTS
+ENV WAIT_TIME=$WAIT_TIME
 
 COPY requirements.txt .
 
